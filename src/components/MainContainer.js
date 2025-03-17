@@ -15,14 +15,16 @@ const Container = styled.div`
 
 const TabContainer = styled.div`
   width: 100%;
-  display:flex;
+  display: flex;
   justify-content: center;
   background-color: white;
-  position: relative;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
+  z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: -32px;
 `;
 
 const Tab = styled.div`
@@ -42,7 +44,7 @@ const Tab = styled.div`
 const ContentContainer = styled.div`
   width: 100%;
   flex: 1;
-  margin-top: 60px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
   padding: 20px 0;
