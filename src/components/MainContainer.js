@@ -5,82 +5,96 @@ import LotteryHistory from './LotteryHistory';
 import LotteryHistoryDetail from './LotteryHistoryDetail';
 
 const Container = styled.div`
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: 2rem 1rem;
   position: relative;
+  background-color: #f5f5f5;
 `;
 
 const TabContainer = styled.div`
-  display: flex;
-  margin-bottom: 2rem;
   width: 100%;
-  max-width: 800px;
-  border-radius: 8px;
-  overflow: hidden;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  display:flex;
+  justify-content: center;
   background-color: white;
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const Tab = styled.button`
-  flex: 1;
-  padding: 1rem;
-  background-color: ${props => props.active ? '#4a90e2' : '#f8f9fa'};
-  color: ${props => props.active ? 'white' : '#495057'};
-  border: none;
+const Tab = styled.div`
+  padding: 15px 30px;
   cursor: pointer;
-  font-weight: ${props => props.active ? 'bold' : 'normal'};
+  font-size: 16px;
+  color: ${props => props.active ? '#1890ff' : '#666'};
+  border-bottom: 2px solid ${props => props.active ? '#1890ff' : 'transparent'};
   transition: all 0.3s ease;
-  
+  margin: 0 10px;
+
   &:hover {
-    background-color: ${props => props.active ? '#4a90e2' : '#e9ecef'};
+    color: #1890ff;
   }
 `;
 
+const ContentContainer = styled.div`
+  width: 100%;
+  flex: 1;
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+`;
+
 const MainContainer = () => {
-  const [activeTab, setActiveTab] = useState('current'); // 'current' or 'history'
+  const [activeTab, setActiveTab] = useState('current');
   const [selectedRecord, setSelectedRecord] = useState(null);
-  
+
   const handleRecordSelect = (record) => {
     setSelectedRecord(record);
   };
-  
-  const handleBackToList = () => {
+
+  const handleBack = () => {
     setSelectedRecord(null);
   };
-  
+
   return (
     <Container>
       <TabContainer>
         <Tab 
           active={activeTab === 'current'} 
-          onClick={() => setActiveTab('current')}
+          onClick={() => {
+            setActiveTab('current');
+            setSelectedRecord(null);
+          }}
         >
           当前抽奖
         </Tab>
         <Tab 
           active={activeTab === 'history'} 
-          onClick={() => setActiveTab('history')}
+          onClick={() => {
+            setActiveTab('history');
+            setSelectedRecord(null);
+          }}
         >
           历届抽奖
         </Tab>
       </TabContainer>
-      
-      {activeTab === 'current' && <LotteryPage />}
-      
-      {activeTab === 'history' && !selectedRecord && (
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <LotteryHistory onRecordSelect={handleRecordSelect} />
-        </div>
-      )}
-      
-      {activeTab === 'history' && selectedRecord && (
-        <LotteryHistoryDetail record={selectedRecord} onBack={handleBackToList} />
-      )}
+      <ContentContainer>
+        {activeTab === 'current' && <LotteryPage />}
+        {activeTab === 'history' && !selectedRecord && (
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <LotteryHistory onRecordSelect={handleRecordSelect} />
+          </div>
+        )}
+        {activeTab === 'history' && selectedRecord && (
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <LotteryHistoryDetail record={selectedRecord} onBack={handleBack} />
+          </div>
+        )}
+      </ContentContainer>
     </Container>
   );
 };
