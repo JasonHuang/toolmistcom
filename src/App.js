@@ -1,5 +1,5 @@
 import React from 'react';
-import LotteryPage from './components/LotteryPage';
+import MainContainer from './components/MainContainer';
 import './App.css';
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
         <h1>幸运抽奖</h1>
       </header>
       <main>
-        <LotteryPage />
+        <MainContainer />
       </main>
       <footer className="App-footer">
         <p>© {new Date().getFullYear()} 数字抽奖应用</p>
