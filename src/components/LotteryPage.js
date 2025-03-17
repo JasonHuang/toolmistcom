@@ -89,9 +89,48 @@ const ErrorMessage = styled.div`
   font-size: 14px;
 `;
 
+const ExcludedNumbersDisplay = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const ExcludedNumber = styled.span`
+  background-color: #f1f1f1;
+  color: #333;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+`;
+
+const RemoveButton = styled.button`
+  background: none;
+  border: none;
+  color: #e74c3c;
+  margin-left: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  
+  &:hover {
+    color: #c0392b;
+  }
+`;
+
+const InfoMessage = styled.div`
+  color: #7f8c8d;
+  margin-top: 0.5rem;
+  font-size: 14px;
+`;
+
 const LotteryPage = () => {
   const [startNumber, setStartNumber] = useState('');
   const [endNumber, setEndNumber] = useState('');
+  const [excludedInput, setExcludedInput] = useState('');
+  const [excludedNumbers, setExcludedNumbers] = useState([]);
   const [result, setResult] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [error, setError] = useState('');
@@ -99,6 +138,7 @@ const LotteryPage = () => {
 
   const startNumberRef = useRef(null);
   const endNumberRef = useRef(null);
+  const excludedInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -127,8 +167,36 @@ const LotteryPage = () => {
       return false;
     }
 
+    // 检查可能的范围是否太小
+    const availableNumbers = getAvailableNumbers(start, end, excludedNumbers);
+    if (availableNumbers.length === 0) {
+      setError('排除的数字太多，没有可选的数字了');
+      return false;
+    }
+
     setError('');
     return true;
+  };
+
+  const getAvailableNumbers = (start, end, excluded) => {
+    const allNumbers = [];
+    for (let i = start; i <= end; i++) {
+      if (!excluded.includes(i)) {
+        allNumbers.push(i);
+      }
+    }
+    return allNumbers;
+  };
+
+  const getRandomNumberExcluding = (start, end, excluded) => {
+    const availableNumbers = getAvailableNumbers(start, end, excluded);
+    
+    if (availableNumbers.length === 0) {
+      return null; // 没有可用的数字
+    }
+    
+    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+    return availableNumbers[randomIndex];
   };
 
   const handleDraw = () => {
@@ -151,8 +219,8 @@ const LotteryPage = () => {
 
     // 创建一个新的interval来执行抽奖动画
     const newIntervalId = setInterval(() => {
-      // 生成随机数并展示
-      const randomNum = Math.floor(Math.random() * (end - start + 1)) + start;
+      // 生成随机数并展示（排除指定数字）
+      const randomNum = getRandomNumberExcluding(start, end, excludedNumbers);
       setResult(randomNum);
       count++;
 
@@ -161,8 +229,8 @@ const LotteryPage = () => {
         clearInterval(newIntervalId);
         setIntervalId(null);
         
-        // 生成最终结果
-        const finalResult = Math.floor(Math.random() * (end - start + 1)) + start;
+        // 生成最终结果（排除指定数字）
+        const finalResult = getRandomNumberExcluding(start, end, excludedNumbers);
         setResult(finalResult);
         setIsDrawing(false);
       }
@@ -174,9 +242,57 @@ const LotteryPage = () => {
   const handleReset = () => {
     setStartNumber('');
     setEndNumber('');
+    setExcludedInput('');
     setResult(null);
     setError('');
     if (startNumberRef.current) startNumberRef.current.focus();
+  };
+
+  const handleAddExcludedNumber = () => {
+    if (!excludedInput.trim()) return;
+
+    // 支持逗号分隔的多个数字或空格分隔的多个数字
+    const inputNumbers = excludedInput
+      .split(/[,，\s]+/)
+      .map(num => num.trim())
+      .filter(num => num !== '')
+      .map(num => parseInt(num, 10))
+      .filter(num => !isNaN(num));
+
+    if (inputNumbers.length === 0) {
+      setError('请输入有效的数字');
+      return;
+    }
+
+    // 添加新的排除数字（避免重复）
+    const newExcluded = [...excludedNumbers];
+    
+    inputNumbers.forEach(num => {
+      if (!newExcluded.includes(num)) {
+        newExcluded.push(num);
+      }
+    });
+    
+    // 按数字顺序排序
+    newExcluded.sort((a, b) => a - b);
+    
+    setExcludedNumbers(newExcluded);
+    setExcludedInput('');
+    setError('');
+    
+    if (excludedInputRef.current) {
+      excludedInputRef.current.focus();
+    }
+  };
+
+  const handleRemoveExcludedNumber = (numberToRemove) => {
+    setExcludedNumbers(excludedNumbers.filter(num => num !== numberToRemove));
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleAddExcludedNumber();
+    }
   };
 
   return (
@@ -206,6 +322,47 @@ const LotteryPage = () => {
             disabled={isDrawing}
             placeholder="请输入目标数字"
           />
+        </InputGroup>
+        <InputGroup>
+          <Label htmlFor="excludedNumbers">排除数字</Label>
+          <div style={{ display: 'flex' }}>
+            <Input
+              ref={excludedInputRef}
+              type="text"
+              id="excludedNumbers"
+              value={excludedInput}
+              onChange={(e) => setExcludedInput(e.target.value)}
+              disabled={isDrawing}
+              placeholder="输入要排除的数字，例如：1,2,3"
+              onKeyPress={handleKeyPress}
+              style={{ flex: 1, marginRight: '8px' }}
+            />
+            <Button 
+              onClick={handleAddExcludedNumber} 
+              disabled={isDrawing || !excludedInput.trim()}
+              style={{ padding: '0 16px' }}
+            >
+              添加
+            </Button>
+          </div>
+          <InfoMessage>可输入多个数字，用逗号或空格分隔</InfoMessage>
+          
+          {excludedNumbers.length > 0 && (
+            <ExcludedNumbersDisplay>
+              <div style={{ marginRight: '8px', fontWeight: 'bold' }}>已排除：</div>
+              {excludedNumbers.map((num) => (
+                <ExcludedNumber key={num}>
+                  {num}
+                  <RemoveButton 
+                    onClick={() => handleRemoveExcludedNumber(num)}
+                    disabled={isDrawing}
+                  >
+                    ×
+                  </RemoveButton>
+                </ExcludedNumber>
+              ))}
+            </ExcludedNumbersDisplay>
+          )}
         </InputGroup>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="button-group">
