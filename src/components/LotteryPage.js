@@ -1,393 +1,561 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import './LotteryPage.css';
+import { lotteryAPI } from '../services/api';
 
-const FormContainer = styled.div`
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+const Container = styled.div`
   width: 100%;
-  max-width: 500px;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+`;
+
+const Card = styled.div`
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
   margin-bottom: 2rem;
 `;
 
-const InputGroup = styled.div`
+const Title = styled.h2`
+  color: #333;
   margin-bottom: 1.5rem;
-  text-align: left;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.5rem;
 `;
 
-const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
+const SubTitle = styled.h3`
+  font-size: 1.2rem;
+  color: #333;
+  margin: 1.5rem 0 0.5rem;
+`;
+
+const InfoGroup = styled.div`
+  margin-bottom: 0.75rem;
+  display: flex;
+`;
+
+const Label = styled.span`
+  font-weight: 500;
+  color: #666;
+  width: 100px;
+  flex-shrink: 0;
+`;
+
+const Value = styled.span`
   color: #333;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  transition: border-color 0.3s;
-
-  &:focus {
-    border-color: #4a90e2;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-  }
-`;
-
 const Button = styled.button`
-  background-color: #4a90e2;
+  background-color: #1890ff;
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: bold;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s;
+  margin-top: 1rem;
 
   &:hover {
-    background-color: #3a7bc8;
+    background-color: #40a9ff;
   }
 
   &:disabled {
-    background-color: #cccccc;
+    background-color: #bfbfbf;
     cursor: not-allowed;
   }
 `;
 
-const ResultContainer = styled.div`
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  width: 100%;
-  max-width: 500px;
-  display: ${props => (props.visible ? 'block' : 'none')};
-  position: relative;
-  overflow: hidden;
-`;
-
-const NumberDisplay = styled.div`
-  font-size: 72px;
-  font-weight: bold;
-  color: #4a90e2;
-  margin: 1rem 0;
-  height: 100px;
+const Form = styled.form`
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
-const ErrorMessage = styled.div`
-  color: #e74c3c;
-  margin-top: 0.5rem;
-  font-size: 14px;
-`;
-
-const ExcludedNumbersDisplay = styled.div`
-  margin-top: 1rem;
+const FormGroup = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
-const ExcludedNumber = styled.span`
-  background-color: #f1f1f1;
-  color: #333;
+const Input = styled.input`
+  padding: 0.5rem;
+  border: 1px solid #d9d9d9;
   border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-`;
-
-const RemoveButton = styled.button`
-  background: none;
-  border: none;
-  color: #e74c3c;
-  margin-left: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 4px;
+  font-size: 1rem;
   
-  &:hover {
-    color: #c0392b;
+  &:focus {
+    border-color: #40a9ff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
   }
 `;
 
-const InfoMessage = styled.div`
-  color: #7f8c8d;
-  margin-top: 0.5rem;
-  font-size: 14px;
+const TextArea = styled.textarea`
+  padding: 0.5rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 1rem;
+  min-height: 80px;
+  
+  &:focus {
+    border-color: #40a9ff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
 `;
 
-const LotteryPage = () => {
-  const [startNumber, setStartNumber] = useState('');
-  const [endNumber, setEndNumber] = useState('');
-  const [excludedInput, setExcludedInput] = useState('');
-  const [excludedNumbers, setExcludedNumbers] = useState([]);
-  const [result, setResult] = useState(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [error, setError] = useState('');
-  const [intervalId, setIntervalId] = useState(null);
+const ErrorMessage = styled.div`
+  color: #ff4d4f;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+`;
 
-  const startNumberRef = useRef(null);
-  const endNumberRef = useRef(null);
-  const excludedInputRef = useRef(null);
+const SuccessMessage = styled.div`
+  color: #52c41a;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 4px;
+`;
+
+const Progress = styled.div`
+  height: 20px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  margin: 0.5rem 0 1rem;
+  overflow: hidden;
+`;
+
+const ProgressBar = styled.div`
+  height: 100%;
+  background-color: #1890ff;
+  width: ${props => props.percentage}%;
+  transition: width 0.3s ease;
+`;
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
+const LotteryPage = () => {
+  const [currentLottery, setCurrentLottery] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showParticipateForm, setShowParticipateForm] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    title: '',
+    description: '',
+    prize: '',
+    maxParticipants: 100,
+    drawDate: '',
+  });
+  const [participateFormData, setParticipateFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+  });
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  const fetchCurrentLottery = async () => {
+    try {
+      setLoading(true);
+      const lotteries = await lotteryAPI.getAllLotteries();
+      console.log('获取到的抽奖列表:', lotteries); // 调试日志
+      
+      // 即使返回空数组也是有效的响应
+      if (Array.isArray(lotteries)) {
+        const openLotteries = lotteries.filter(lottery => lottery.isOpen);
+        
+        if (openLotteries.length > 0) {
+          // 使用最近创建的开放抽奖
+          setCurrentLottery(openLotteries[0]);
+        } else {
+          setCurrentLottery(null);
+        }
+        
+        setError(null);
+      } else {
+        // 响应格式不符合预期
+        setCurrentLottery(null);
+        setError('获取抽奖数据格式错误');
+        console.error('抽奖数据格式不正确:', lotteries);
+      }
+    } catch (err) {
+      setCurrentLottery(null);
+      setError('获取当前抽奖失败，请稍后再试');
+      console.error('获取当前抽奖失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+    fetchCurrentLottery();
+  }, []);
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
+    try {
+      // 验证表单
+      if (!createFormData.title || !createFormData.description || !createFormData.prize || !createFormData.drawDate) {
+        setFormError('请填写所有必填字段');
+        return;
       }
-    };
-  }, [intervalId]);
 
-  const validateInputs = () => {
-    if (startNumber === '' || endNumber === '') {
-      setError('请输入起始数字和目标数字');
-      return false;
-    }
-
-    const start = parseInt(startNumber, 10);
-    const end = parseInt(endNumber, 10);
-
-    if (isNaN(start) || isNaN(end)) {
-      setError('请输入有效的数字');
-      return false;
-    }
-
-    if (start >= end) {
-      setError('起始数字必须小于目标数字');
-      return false;
-    }
-
-    // 检查可能的范围是否太小
-    const availableNumbers = getAvailableNumbers(start, end, excludedNumbers);
-    if (availableNumbers.length === 0) {
-      setError('排除的数字太多，没有可选的数字了');
-      return false;
-    }
-
-    setError('');
-    return true;
-  };
-
-  const getAvailableNumbers = (start, end, excluded) => {
-    const allNumbers = [];
-    for (let i = start; i <= end; i++) {
-      if (!excluded.includes(i)) {
-        allNumbers.push(i);
+      // 准备数据
+      const today = new Date();
+      const drawDate = new Date(createFormData.drawDate);
+      
+      if (drawDate <= today) {
+        setFormError('抽奖日期必须在将来');
+        return;
       }
+
+      const lotteryData = {
+        ...createFormData,
+        startDate: today.toISOString(),
+        endDate: drawDate.toISOString(),
+        isOpen: true,
+        participants: []
+      };
+
+      // 提交到API
+      await lotteryAPI.createLottery(lotteryData);
+      setFormSuccess('抽奖活动创建成功');
+      setCreateFormData({
+        title: '',
+        description: '',
+        prize: '',
+        maxParticipants: 100,
+        drawDate: '',
+      });
+      setShowCreateForm(false);
+      
+      // 刷新当前抽奖
+      await fetchCurrentLottery();
+    } catch (error) {
+      setFormError('创建抽奖失败: ' + error.message);
     }
-    return allNumbers;
   };
 
-  const getRandomNumberExcluding = (start, end, excluded) => {
-    const availableNumbers = getAvailableNumbers(start, end, excluded);
-    
-    if (availableNumbers.length === 0) {
-      return null; // 没有可用的数字
+  const handleParticipateSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
+    try {
+      // 验证表单
+      if (!participateFormData.name || !participateFormData.phone || !participateFormData.email) {
+        setFormError('请填写所有必填字段');
+        return;
+      }
+
+      // 验证电子邮件格式
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(participateFormData.email)) {
+        setFormError('请输入有效的电子邮件地址');
+        return;
+      }
+
+      // 验证手机号格式
+      const phoneRegex = /^1[3-9]\d{9}$/;
+      if (!phoneRegex.test(participateFormData.phone)) {
+        setFormError('请输入有效的手机号码');
+        return;
+      }
+
+      // 提交到API
+      await lotteryAPI.addParticipant(currentLottery._id, participateFormData);
+      setFormSuccess('参与成功，祝您好运！');
+      setParticipateFormData({
+        name: '',
+        phone: '',
+        email: '',
+      });
+      setShowParticipateForm(false);
+      
+      // 刷新当前抽奖
+      await fetchCurrentLottery();
+    } catch (error) {
+      setFormError('参与抽奖失败: ' + error.message);
     }
-    
-    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
-    return availableNumbers[randomIndex];
   };
 
-  const handleDraw = () => {
-    if (!validateInputs()) return;
+  const handleCreateInputChange = (e) => {
+    const { name, value } = e.target;
+    setCreateFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    const start = parseInt(startNumber, 10);
-    const end = parseInt(endNumber, 10);
+  const handleParticipateInputChange = (e) => {
+    const { name, value } = e.target;
+    setParticipateFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    setIsDrawing(true);
-    setResult(null);
+  if (loading) {
+    return <Container><Card><Title>当前抽奖</Title><div>加载中...</div></Card></Container>;
+  }
 
-    let count = 0;
-    const maxCount = 20; // 抽奖动画持续次数
-    const animationInterval = 50; // 抽奖动画间隔（毫秒）
+  if (error) {
+    return <Container><Card><Title>当前抽奖</Title><div style={{ color: 'red' }}>{error}</div></Card></Container>;
+  }
 
-    // 清除之前的interval（如果有）
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-
-    // 创建一个新的interval来执行抽奖动画
-    const newIntervalId = setInterval(() => {
-      // 生成随机数并展示（排除指定数字）
-      const randomNum = getRandomNumberExcluding(start, end, excludedNumbers);
-      setResult(randomNum);
-      count++;
-
-      // 达到最大次数后停止动画
-      if (count >= maxCount) {
-        clearInterval(newIntervalId);
-        setIntervalId(null);
+  if (!currentLottery && !showCreateForm) {
+    return (
+      <Container>
+        <Card>
+          <Title>当前抽奖</Title>
+          <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+            <p>目前没有正在进行的抽奖活动</p>
+            <Button onClick={() => setShowCreateForm(true)}>创建新抽奖</Button>
+          </div>
+        </Card>
         
-        // 生成最终结果（排除指定数字）
-        const finalResult = getRandomNumberExcluding(start, end, excludedNumbers);
-        setResult(finalResult);
-        setIsDrawing(false);
-      }
-    }, animationInterval);
-
-    setIntervalId(newIntervalId);
-  };
-
-  const handleReset = () => {
-    setStartNumber('');
-    setEndNumber('');
-    setExcludedInput('');
-    setResult(null);
-    setError('');
-    if (startNumberRef.current) startNumberRef.current.focus();
-  };
-
-  const handleAddExcludedNumber = () => {
-    if (!excludedInput.trim()) return;
-
-    // 支持逗号分隔的多个数字或空格分隔的多个数字
-    const inputNumbers = excludedInput
-      .split(/[,，\s]+/)
-      .map(num => num.trim())
-      .filter(num => num !== '')
-      .map(num => parseInt(num, 10))
-      .filter(num => !isNaN(num));
-
-    if (inputNumbers.length === 0) {
-      setError('请输入有效的数字');
-      return;
-    }
-
-    // 添加新的排除数字（避免重复）
-    const newExcluded = [...excludedNumbers];
-    
-    inputNumbers.forEach(num => {
-      if (!newExcluded.includes(num)) {
-        newExcluded.push(num);
-      }
-    });
-    
-    // 按数字顺序排序
-    newExcluded.sort((a, b) => a - b);
-    
-    setExcludedNumbers(newExcluded);
-    setExcludedInput('');
-    setError('');
-    
-    if (excludedInputRef.current) {
-      excludedInputRef.current.focus();
-    }
-  };
-
-  const handleRemoveExcludedNumber = (numberToRemove) => {
-    setExcludedNumbers(excludedNumbers.filter(num => num !== numberToRemove));
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleAddExcludedNumber();
-    }
-  };
+        {showCreateForm && (
+          <Card>
+            <Title>创建新抽奖</Title>
+            <Form onSubmit={handleCreateSubmit}>
+              <FormGroup>
+                <label htmlFor="title">标题</label>
+                <Input 
+                  type="text" 
+                  id="title" 
+                  name="title" 
+                  value={createFormData.title}
+                  onChange={handleCreateInputChange}
+                  placeholder="请输入抽奖标题"
+                />
+              </FormGroup>
+              <FormGroup>
+                <label htmlFor="description">描述</label>
+                <TextArea 
+                  id="description" 
+                  name="description" 
+                  value={createFormData.description}
+                  onChange={handleCreateInputChange}
+                  placeholder="请输入抽奖描述"
+                />
+              </FormGroup>
+              <FormGroup>
+                <label htmlFor="prize">奖品</label>
+                <Input 
+                  type="text" 
+                  id="prize" 
+                  name="prize" 
+                  value={createFormData.prize}
+                  onChange={handleCreateInputChange}
+                  placeholder="请输入奖品名称"
+                />
+              </FormGroup>
+              <FormGroup>
+                <label htmlFor="maxParticipants">最大参与人数</label>
+                <Input 
+                  type="number" 
+                  id="maxParticipants" 
+                  name="maxParticipants" 
+                  min="1"
+                  value={createFormData.maxParticipants}
+                  onChange={handleCreateInputChange}
+                />
+              </FormGroup>
+              <FormGroup>
+                <label htmlFor="drawDate">抽奖日期</label>
+                <Input 
+                  type="date" 
+                  id="drawDate" 
+                  name="drawDate" 
+                  value={createFormData.drawDate}
+                  onChange={handleCreateInputChange}
+                />
+              </FormGroup>
+              {formError && <ErrorMessage>{formError}</ErrorMessage>}
+              {formSuccess && <SuccessMessage>{formSuccess}</SuccessMessage>}
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <Button type="button" onClick={() => setShowCreateForm(false)} style={{ backgroundColor: '#f0f0f0', color: '#333' }}>
+                  取消
+                </Button>
+                <Button type="submit">提交</Button>
+              </div>
+            </Form>
+          </Card>
+        )}
+      </Container>
+    );
+  }
 
   return (
-    <div className="lottery-container">
-      <FormContainer>
-        <h2>设置抽奖范围</h2>
-        <InputGroup>
-          <Label htmlFor="startNumber">起始数字</Label>
-          <Input
-            ref={startNumberRef}
-            type="number"
-            id="startNumber"
-            value={startNumber}
-            onChange={(e) => setStartNumber(e.target.value)}
-            disabled={isDrawing}
-            placeholder="请输入起始数字"
-          />
-        </InputGroup>
-        <InputGroup>
-          <Label htmlFor="endNumber">目标数字</Label>
-          <Input
-            ref={endNumberRef}
-            type="number"
-            id="endNumber"
-            value={endNumber}
-            onChange={(e) => setEndNumber(e.target.value)}
-            disabled={isDrawing}
-            placeholder="请输入目标数字"
-          />
-        </InputGroup>
-        <InputGroup>
-          <Label htmlFor="excludedNumbers">排除数字</Label>
-          <div style={{ display: 'flex' }}>
-            <Input
-              ref={excludedInputRef}
-              type="text"
-              id="excludedNumbers"
-              value={excludedInput}
-              onChange={(e) => setExcludedInput(e.target.value)}
-              disabled={isDrawing}
-              placeholder="输入要排除的数字，例如：1,2,3"
-              onKeyPress={handleKeyPress}
-              style={{ flex: 1, marginRight: '8px' }}
-            />
-            <Button 
-              onClick={handleAddExcludedNumber} 
-              disabled={isDrawing || !excludedInput.trim()}
-              style={{ padding: '0 16px' }}
-            >
-              添加
-            </Button>
-          </div>
-          <InfoMessage>可输入多个数字，用逗号或空格分隔</InfoMessage>
-          
-          {excludedNumbers.length > 0 && (
-            <ExcludedNumbersDisplay>
-              <div style={{ marginRight: '8px', fontWeight: 'bold' }}>已排除：</div>
-              {excludedNumbers.map((num) => (
-                <ExcludedNumber key={num}>
-                  {num}
-                  <RemoveButton 
-                    onClick={() => handleRemoveExcludedNumber(num)}
-                    disabled={isDrawing}
-                  >
-                    ×
-                  </RemoveButton>
-                </ExcludedNumber>
-              ))}
-            </ExcludedNumbersDisplay>
-          )}
-        </InputGroup>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <div className="button-group">
-          <Button onClick={handleDraw} disabled={isDrawing}>
-            {isDrawing ? '抽奖中...' : '开始抽奖'}
+    <Container>
+      <Card>
+        <Title>当前抽奖: {currentLottery?.title}</Title>
+        
+        <SubTitle>基本信息</SubTitle>
+        <InfoGroup>
+          <Label>创建日期</Label>
+          <Value>{formatDate(currentLottery?.createdAt)}</Value>
+        </InfoGroup>
+        <InfoGroup>
+          <Label>抽奖日期</Label>
+          <Value>{formatDate(currentLottery?.drawDate)}</Value>
+        </InfoGroup>
+        <InfoGroup>
+          <Label>奖品</Label>
+          <Value>{currentLottery?.prize}</Value>
+        </InfoGroup>
+        
+        <SubTitle>抽奖说明</SubTitle>
+        <div style={{ marginBottom: '1rem' }}>{currentLottery?.description}</div>
+        
+        <SubTitle>参与情况</SubTitle>
+        <InfoGroup>
+          <Label>参与人数</Label>
+          <Value>{currentLottery?.participants?.length || 0} / {currentLottery?.maxParticipants}</Value>
+        </InfoGroup>
+        <Progress>
+          <ProgressBar percentage={(currentLottery?.participants?.length || 0) / currentLottery?.maxParticipants * 100} />
+        </Progress>
+        
+        {!showParticipateForm ? (
+          <Button onClick={() => setShowParticipateForm(true)}>
+            立即参与
           </Button>
-          <Button className="reset-button" onClick={handleReset} disabled={isDrawing}>
-            重置
-          </Button>
-        </div>
-      </FormContainer>
-
-      <ResultContainer visible={result !== null}>
-        <h2>抽奖结果</h2>
-        <NumberDisplay>{result}</NumberDisplay>
-        <div className="confetti-container">
-          {isDrawing && (
-            <div className="drawing-animation">
-              <div className="spinner"></div>
+        ) : (
+          <Form onSubmit={handleParticipateSubmit}>
+            <FormGroup>
+              <label htmlFor="name">姓名</label>
+              <Input 
+                type="text" 
+                id="name" 
+                name="name" 
+                value={participateFormData.name}
+                onChange={handleParticipateInputChange}
+                placeholder="请输入您的姓名"
+              />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor="phone">手机号</label>
+              <Input 
+                type="tel" 
+                id="phone" 
+                name="phone" 
+                value={participateFormData.phone}
+                onChange={handleParticipateInputChange}
+                placeholder="请输入您的手机号"
+              />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor="email">电子邮箱</label>
+              <Input 
+                type="email" 
+                id="email" 
+                name="email" 
+                value={participateFormData.email}
+                onChange={handleParticipateInputChange}
+                placeholder="请输入您的电子邮箱"
+              />
+            </FormGroup>
+            {formError && <ErrorMessage>{formError}</ErrorMessage>}
+            {formSuccess && <SuccessMessage>{formSuccess}</SuccessMessage>}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <Button type="button" onClick={() => setShowParticipateForm(false)} style={{ backgroundColor: '#f0f0f0', color: '#333' }}>
+                取消
+              </Button>
+              <Button type="submit">提交</Button>
             </div>
-          )}
-          {!isDrawing && result !== null && <div className="confetti"></div>}
-        </div>
-      </ResultContainer>
-    </div>
+          </Form>
+        )}
+      </Card>
+      
+      {!currentLottery && showCreateForm && (
+        <Card>
+          <Title>创建新抽奖</Title>
+          <Form onSubmit={handleCreateSubmit}>
+            <FormGroup>
+              <label htmlFor="title">标题</label>
+              <Input 
+                type="text" 
+                id="title" 
+                name="title" 
+                value={createFormData.title}
+                onChange={handleCreateInputChange}
+                placeholder="请输入抽奖标题"
+              />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor="description">描述</label>
+              <TextArea 
+                id="description" 
+                name="description" 
+                value={createFormData.description}
+                onChange={handleCreateInputChange}
+                placeholder="请输入抽奖描述"
+              />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor="prize">奖品</label>
+              <Input 
+                type="text" 
+                id="prize" 
+                name="prize" 
+                value={createFormData.prize}
+                onChange={handleCreateInputChange}
+                placeholder="请输入奖品名称"
+              />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor="maxParticipants">最大参与人数</label>
+              <Input 
+                type="number" 
+                id="maxParticipants" 
+                name="maxParticipants" 
+                min="1"
+                value={createFormData.maxParticipants}
+                onChange={handleCreateInputChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <label htmlFor="drawDate">抽奖日期</label>
+              <Input 
+                type="date" 
+                id="drawDate" 
+                name="drawDate" 
+                value={createFormData.drawDate}
+                onChange={handleCreateInputChange}
+              />
+            </FormGroup>
+            {formError && <ErrorMessage>{formError}</ErrorMessage>}
+            {formSuccess && <SuccessMessage>{formSuccess}</SuccessMessage>}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <Button type="button" onClick={() => setShowCreateForm(false)} style={{ backgroundColor: '#f0f0f0', color: '#333' }}>
+                取消
+              </Button>
+              <Button type="submit">提交</Button>
+            </div>
+          </Form>
+        </Card>
+      )}
+    </Container>
   );
 };
 
