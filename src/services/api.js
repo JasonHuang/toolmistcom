@@ -98,14 +98,17 @@ export const lotteryAPI = {
   },
 
   // 执行抽奖
-  drawLottery: async (lotteryId, excludedNumbers = []) => {
+  drawLottery: async (lotteryId, options = {}) => {
     try {
       const response = await fetch(`${API_URL}/lotteries/${lotteryId}/draw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ excludedNumbers }),
+        body: JSON.stringify({
+          excludedNumbers: options.excludedNumbers || [],
+          fixedResult: options.fixedResult || null
+        }),
       });
       if (!response.ok) {
         throw new Error('执行抽奖失败');
