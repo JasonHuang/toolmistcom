@@ -4,75 +4,170 @@ import { lotteryAPI } from '../services/api';
 
 const HistoryContainer = styled.div`
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 2rem;
-  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  }
 `;
 
 const Title = styled.h2`
-  color: #333;
+  color: #1a1a1a;
   margin-bottom: 1.5rem;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+  padding-bottom: 0.8rem;
   border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  span {
+    position: relative;
+    
+    &:after {
+      content: '';
+      position: absolute;
+      bottom: -0.9rem;
+      left: 0;
+      width: 3rem;
+      height: 3px;
+      background: linear-gradient(to right, #ff4d4f, #ff7875);
+      border-radius: 3px;
+    }
+  }
 `;
 
 const Table = styled.table`
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1rem;
 `;
 
-const Th = styled.th`
+const TableHeader = styled.th`
   text-align: left;
-  padding: 0.75rem;
+  padding: 1rem;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 1rem;
+  background-color: #fafafa;
   border-bottom: 2px solid #f0f0f0;
-  color: #666;
+  
+  &:first-child {
+    border-top-left-radius: 8px;
+  }
+  
+  &:last-child {
+    border-top-right-radius: 8px;
+  }
 `;
 
-const Td = styled.td`
-  padding: 0.75rem;
-  border-bottom: 1px solid #f0f0f0;
-`;
-
-const Tr = styled.tr`
+const TableRow = styled.tr`
+  transition: all 0.2s ease;
+  
   &:hover {
-    background-color: #f9f9f9;
+    background-color: #fafafa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  &:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+  }
+`;
+
+const TableCell = styled.td`
+  padding: 1rem;
+  color: #333;
+  font-size: 0.95rem;
+  
+  &:first-child {
+    font-weight: 500;
   }
 `;
 
 const StatusBadge = styled.span`
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
   background-color: ${props => props.isOpen ? '#e6f7ff' : '#f6ffed'};
   color: ${props => props.isOpen ? '#1890ff' : '#52c41a'};
   border: 1px solid ${props => props.isOpen ? '#91d5ff' : '#b7eb8f'};
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: ${props => props.isOpen ? '#1890ff' : '#52c41a'};
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 const EmptyMessage = styled.div`
-  text-align: center;
   padding: 2rem;
+  text-align: center;
   color: #999;
-  font-style: italic;
+  font-size: 1rem;
+  background-color: #fafafa;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border: 1px dashed #d9d9d9;
 `;
 
 const ViewButton = styled.button`
-  background-color: #1890ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to right, #1890ff, #40a9ff);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
   font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s;
-
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  
+  &:before {
+    content: '→';
+    margin-right: 6px;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+  }
+  
   &:hover {
-    background-color: #40a9ff;
+    background: linear-gradient(to right, #40a9ff, #69c0ff);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+    
+    &:before {
+      transform: translateX(3px);
+    }
+  }
+  
+  &:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(24, 144, 255, 0.2);
   }
 `;
 
@@ -125,42 +220,47 @@ const LotteryHistory = ({ onRecordSelect }) => {
 
   return (
     <HistoryContainer>
-      <Title>历届抽奖</Title>
-      {lotteries.length === 0 ? (
-        <EmptyMessage>暂无抽奖历史记录</EmptyMessage>
-      ) : (
+      <Title>
+        <span>抽奖历史记录</span>
+      </Title>
+      
+      {lotteries.length > 0 ? (
         <Table>
           <thead>
-            <Tr>
-              <Th>日期</Th>
-              <Th>标题</Th>
-              <Th>抽奖日期</Th>
-              <Th>奖品</Th>
-              <Th>状态</Th>
-              <Th>操作</Th>
-            </Tr>
+            <tr>
+              <TableHeader>标题</TableHeader>
+              <TableHeader>创建日期</TableHeader>
+              <TableHeader>开奖日期</TableHeader>
+              <TableHeader>奖品</TableHeader>
+              <TableHeader>状态</TableHeader>
+              <TableHeader>获奖者</TableHeader>
+              <TableHeader>操作</TableHeader>
+            </tr>
           </thead>
           <tbody>
-            {lotteries.map((lottery) => (
-              <Tr key={lottery._id}>
-                <Td>{formatDate(lottery.createdAt)}</Td>
-                <Td>{lottery.title}</Td>
-                <Td>{formatDate(lottery.drawDate)}</Td>
-                <Td>{lottery.prize}</Td>
-                <Td>
-                  <StatusBadge isOpen={lottery.isOpen}>
-                    {lottery.isOpen ? '进行中' : '已结束'}
+            {lotteries.map((record) => (
+              <TableRow key={record._id}>
+                <TableCell>{record.title}</TableCell>
+                <TableCell>{formatDate(record.createdAt)}</TableCell>
+                <TableCell>{formatDate(record.drawDate)}</TableCell>
+                <TableCell>{record.prize}</TableCell>
+                <TableCell>
+                  <StatusBadge isOpen={record.isOpen}>
+                    {record.isOpen ? '进行中' : '已结束'}
                   </StatusBadge>
-                </Td>
-                <Td>
-                  <ViewButton onClick={() => handleViewDetails(lottery)}>
+                </TableCell>
+                <TableCell>{record.winner || '-'}</TableCell>
+                <TableCell>
+                  <ViewButton onClick={() => handleViewDetails(record)}>
                     查看详情
                   </ViewButton>
-                </Td>
-              </Tr>
+                </TableCell>
+              </TableRow>
             ))}
           </tbody>
         </Table>
+      ) : (
+        <EmptyMessage>暂无抽奖历史记录</EmptyMessage>
       )}
     </HistoryContainer>
   );
