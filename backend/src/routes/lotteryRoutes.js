@@ -12,6 +12,23 @@ router.get('/', async (req, res) => {
   }
 });
 
+// 获取当前抽奖活动（第一个进行中的抽奖）
+router.get('/current', async (req, res) => {
+  try {
+    // 查找第一个状态为"开放"的抽奖活动
+    const currentLottery = await Lottery.findOne({ isOpen: true }).sort({ createdAt: -1 });
+    
+    if (!currentLottery) {
+      return res.status(404).json({ message: '当前没有进行中的抽奖活动' });
+    }
+    
+    res.json(currentLottery);
+  } catch (error) {
+    console.error('获取当前抽奖活动出错:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // 获取单个抽奖活动
 router.get('/:id', async (req, res) => {
   try {

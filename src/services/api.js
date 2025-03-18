@@ -23,6 +23,20 @@ export const lotteryAPI = {
     }
   },
 
+  // 获取当前抽奖活动（获取第一个开放的抽奖）
+  getCurrentLottery: async () => {
+    try {
+      const response = await fetch(`${API_URL}/lotteries/current`);
+      if (!response.ok) {
+        throw new Error('获取当前抽奖失败');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('获取当前抽奖错误:', error);
+      throw error;
+    }
+  },
+
   // 获取单个抽奖活动
   getLottery: async (id) => {
     try {
@@ -40,16 +54,31 @@ export const lotteryAPI = {
   // 创建新抽奖活动
   createLottery: async (lotteryData) => {
     try {
+      // 添加必要的日期字段
+      const today = new Date();
+      const drawDate = new Date(lotteryData.drawDate);
+      
+      const completeData = {
+        ...lotteryData,
+        startDate: today.toISOString(),
+        endDate: drawDate.toISOString(),
+        isOpen: true
+      };
+      
       const response = await fetch(`${API_URL}/lotteries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(lotteryData),
+        body: JSON.stringify(completeData),
       });
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('创建抽奖错误响应:', errorText);
         throw new Error('创建抽奖失败');
       }
+      
       return await response.json();
     } catch (error) {
       console.error('创建抽奖错误:', error);
@@ -93,6 +122,26 @@ export const lotteryAPI = {
       return await response.json();
     } catch (error) {
       console.error('添加参与者错误:', error);
+      throw error;
+    }
+  },
+  
+  // 参与抽奖
+  joinLottery: async (lotteryId, participantData) => {
+    try {
+      const response = await fetch(`${API_URL}/lotteries/${lotteryId}/participants`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(participantData),
+      });
+      if (!response.ok) {
+        throw new Error('参与抽奖失败');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('参与抽奖错误:', error);
       throw error;
     }
   },
