@@ -195,11 +195,11 @@ const TextArea = styled.textarea`
 `;
 
 const Button = styled.button`
-  background: ${props => props.primary ? 
+  background: ${props => props.$primary ? 
     'linear-gradient(to right, #ff4d4f, #ff7875)' : 
     'white'};
-  color: ${props => props.primary ? 'white' : '#666'};
-  border: ${props => props.primary ? 'none' : '1px solid #d9d9d9'};
+  color: ${props => props.$primary ? 'white' : '#666'};
+  border: ${props => props.$primary ? 'none' : '1px solid #d9d9d9'};
   border-radius: 6px;
   padding: 0.6rem 1.2rem;
   font-size: 0.95rem;
@@ -209,7 +209,7 @@ const Button = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: ${props => props.primary ? 
+  box-shadow: ${props => props.$primary ? 
     '0 4px 12px rgba(255, 77, 79, 0.3)' : 
     '0 2px 8px rgba(0, 0, 0, 0.05)'};
   position: relative;
@@ -233,10 +233,10 @@ const Button = styled.button`
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: ${props => props.primary ? 
+    box-shadow: ${props => props.$primary ? 
       '0 6px 16px rgba(255, 77, 79, 0.4)' : 
       '0 4px 12px rgba(0, 0, 0, 0.1)'};
-    background-color: ${props => !props.primary && '#f9f9f9'};
+    background-color: ${props => !props.$primary && '#f9f9f9'};
     
     &:before {
       left: 100%;
@@ -245,14 +245,14 @@ const Button = styled.button`
   
   &:active {
     transform: translateY(-1px);
-    box-shadow: ${props => props.primary ? 
+    box-shadow: ${props => props.$primary ? 
       '0 3px 8px rgba(255, 77, 79, 0.3)' : 
       '0 2px 6px rgba(0, 0, 0, 0.05)'};
   }
   
   &:disabled {
-    background: ${props => props.primary ? '#bfbfbf' : '#f5f5f5'};
-    color: ${props => props.primary ? 'white' : '#999'};
+    background: ${props => props.$primary ? '#bfbfbf' : '#f5f5f5'};
+    color: ${props => props.$primary ? 'white' : '#999'};
     cursor: not-allowed;
     box-shadow: none;
     
@@ -500,7 +500,7 @@ const ImagePreviewModal = styled.div`
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.85);
-  display: ${props => props.isOpen ? 'flex' : 'none'};
+  display: ${props => props.$isOpen ? 'flex' : 'none'};
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -563,6 +563,8 @@ const initialFormData = {
   startNumber: '1',
   endNumber: '50'  // 默认结束数字为50
 };
+
+const MAX_IMAGE_SIZE = 500 * 1024; // 500KB限制
 
 const LotteryPage = () => {
   const navigate = useNavigate();
@@ -686,6 +688,13 @@ const LotteryPage = () => {
         };
 
         console.log('Sending lottery data:', lotteryData);
+        
+        // 检查图片数据大小
+        if (lotteryData.prizeImage && lotteryData.prizeImage.length > 200000) {
+          console.log(`图片数据大小: ${Math.round(lotteryData.prizeImage.length/1024)}KB，正在进一步压缩...`);
+          lotteryData.prizeImage = await compressImage(lotteryData.prizeImage, 400, 400, 0.6);
+        }
+        
         const response = await lotteryAPI.createLottery(lotteryData);
         console.log('Server response:', response);
 
@@ -730,17 +739,26 @@ const LotteryPage = () => {
       return;
     }
     
+    // 验证文件大小
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError(`图片大小不能超过500KB，当前大小: ${Math.round(file.size/1024)}KB`);
+      return;
+    }
+    
     // 创建预览
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target.result;
       setImagePreview(result);
       
-      // 立即更新formData中的prizeImage，而不是等待模拟上传完成
-      setFormData(prev => ({
-        ...prev,
-        prizeImage: result
-      }));
+      // 压缩图片
+      compressImage(result, 800, 800, 0.8).then(compressedImage => {
+        // 更新formData中的prizeImage为压缩后的图片
+        setFormData(prev => ({
+          ...prev,
+          prizeImage: compressedImage
+        }));
+      });
     };
     reader.readAsDataURL(file);
     
@@ -776,6 +794,41 @@ const LotteryPage = () => {
       setIsUploading(false);
       setUploadProgress(0);
     }
+  };
+
+  // 图片压缩函数
+  const compressImage = (base64, maxWidth, maxHeight, quality) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64;
+      img.onload = () => {
+        // 计算调整后的尺寸
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = Math.round(height * maxWidth / width);
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = Math.round(width * maxHeight / height);
+          height = maxHeight;
+        }
+        
+        // 创建canvas进行压缩
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 转换为压缩后的base64
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+    });
   };
 
   return (
@@ -1178,7 +1231,7 @@ const LotteryPage = () => {
               {activeTab !== 'advanced' ? (
                 <Button 
                   type="button" 
-                  primary
+                  $primary
                   onClick={(e) => {
                     e.preventDefault(); // 防止事件冒泡
                     setActiveTab(activeTab === 'basic' ? 'settings' : 'advanced');
@@ -1189,7 +1242,7 @@ const LotteryPage = () => {
               ) : (
                 <Button 
                   type="submit" 
-                  primary
+                  $primary
                   disabled={loading || isUploading}
                 >
                   {loading ? '创建中...' : (isUploading ? '等待图片上传...' : '提交创建')}
@@ -1202,7 +1255,7 @@ const LotteryPage = () => {
       
       {/* 图片预览模态窗口 */}
       <ImagePreviewModal 
-        isOpen={previewModalOpen}
+        $isOpen={previewModalOpen}
         onClick={() => setPreviewModalOpen(false)}
       >
         {imagePreview && <img src={imagePreview} alt="奖品大图预览" />}

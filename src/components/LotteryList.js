@@ -157,9 +157,9 @@ const StatusBadge = styled.span`
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  background-color: ${props => props.isOpen ? '#e6f7ff' : '#f6ffed'};
-  color: ${props => props.isOpen ? '#1890ff' : '#52c41a'};
-  border: 1px solid ${props => props.isOpen ? '#91d5ff' : '#b7eb8f'};
+  background-color: ${props => props.$isOpen ? '#e6f7ff' : '#f6ffed'};
+  color: ${props => props.$isOpen ? '#1890ff' : '#52c41a'};
+  border: 1px solid ${props => props.$isOpen ? '#91d5ff' : '#b7eb8f'};
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   
@@ -168,7 +168,7 @@ const StatusBadge = styled.span`
     display: inline-block;
     width: 8px;
     height: 8px;
-    background-color: ${props => props.isOpen ? '#1890ff' : '#52c41a'};
+    background-color: ${props => props.$isOpen ? '#1890ff' : '#52c41a'};
     border-radius: 50%;
     margin-right: 6px;
   }
@@ -698,7 +698,7 @@ const LotteryList = ({ onRecordSelect }) => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge isOpen={record.isOpen}>
+                    <StatusBadge $isOpen={record.isOpen}>
                       {record.isOpen ? '进行中' : '已结束'}
                     </StatusBadge>
                   </TableCell>
