@@ -240,4 +240,31 @@ export const lotteryAPI = {
       throw error;
     }
   },
+};
+
+// 新增处理图片上传的API
+export const imageAPI = {
+  // 上传图片
+  uploadImage: async (file) => {
+    try {
+      // 创建FormData对象来包含文件
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      // 使用fetch API上传图片
+      const response = await fetch(`${API_URL}/images/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('图片上传失败');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('图片上传错误:', error);
+      throw error;
+    }
+  },
 }; 

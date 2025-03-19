@@ -26,6 +26,10 @@ const lotterySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  prizeImage: {
+    type: String,
+    default: null
+  },
   maxParticipants: {
     type: Number,
     required: true,

@@ -1,28 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { lotteryAPI } from '../services/api';
+import { imageAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
+// 主容器样式
 const PageContainer = styled.div`
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   background-color: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 1.8rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  overflow: hidden;
   
   &:hover {
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
   }
 `;
 
+// 页面标题区
+const PageHeader = styled.div`
+  padding: 1.8rem 2rem;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(135deg, #fff8f0 0%, #fff 100%);
+`;
+
 const Title = styled.h1`
   color: #1a1a1a;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.6rem;
   font-size: 1.8rem;
   font-weight: 600;
   letter-spacing: -0.5px;
@@ -49,17 +59,81 @@ const Subtitle = styled.p`
   line-height: 1.4;
 `;
 
+// 标签页导航区
+const TabsNav = styled.div`
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 2rem;
+  background-color: #fafafa;
+`;
+
+const TabButton = styled.button`
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: ${props => props.$active ? '600' : '400'};
+  color: ${props => props.$active ? '#ff4d4f' : '#666'};
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: ${props => props.$active ? '#ff4d4f' : 'transparent'};
+    transition: all 0.3s ease;
+  }
+  
+  &:hover {
+    color: ${props => !props.$active && '#ff7875'};
+  }
+`;
+
+// 表单容器
+const FormContainer = styled.div`
+  padding: 2rem;
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed #f0f0f0;
+`;
+
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
+  margin-bottom: 1.5rem;
+`;
+
+const FormRow = styled.div`
+  display: flex;
+  gap: 1rem;
   margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+`;
+
+const FormColumn = styled.div`
+  flex: 1;
 `;
 
 const Label = styled.label`
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
   font-weight: 500;
   color: #333;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   
@@ -73,11 +147,12 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  padding: 0.6rem 0.8rem;
+  padding: 0.7rem 1rem;
   border: 1px solid #d9d9d9;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
   transition: all 0.3s ease;
+  width: 100%;
   
   &:focus {
     border-color: #40a9ff;
@@ -95,13 +170,14 @@ const Input = styled.input`
 `;
 
 const TextArea = styled.textarea`
-  padding: 0.6rem 0.8rem;
+  padding: 0.7rem 1rem;
   border: 1px solid #d9d9d9;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
-  min-height: 80px;
+  min-height: 100px;
   resize: vertical;
   transition: all 0.3s ease;
+  width: 100%;
   
   &:focus {
     border-color: #40a9ff;
@@ -274,109 +350,154 @@ const CheckboxLabel = styled.label`
   }
 `;
 
-// 添加日期选择按钮样式
-const DateButtonGroup = styled.div`
+// 添加图片上传组件样式
+const ImageUploader = styled.div`
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  background-color: #fafafa;
+  width: 100%;
+  height: 120px;
   display: flex;
-  gap: 0.4rem;
-  margin-top: 0.4rem;
-  flex-wrap: wrap;
-`;
-
-const DateButton = styled.button`
-  padding: 0.4rem 0.6rem;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  background-color: white;
-  font-size: 0.85rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
   
   &:hover {
     border-color: #40a9ff;
-    color: #40a9ff;
-  }
-  
-  &:active {
     background-color: #f0f7ff;
   }
+  
+  input {
+    display: none;
+  }
 `;
 
-// 添加一个用于并排字段的容器
-const FormRow = styled.div`
+const AddIcon = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  position: relative;
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 1rem;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background-color: #999;
+  }
+  
+  &::before {
+    width: 16px;
+    height: 2px;
+  }
+  
+  &::after {
+    width: 2px;
+    height: 16px;
   }
 `;
 
-const FormColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: ${props => props.flex || '1'};
+const UploadText = styled.div`
+  color: #666;
+  font-size: 14px;
 `;
 
-// 添加四列布局组件
-const FormGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
+const ImagePreview = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
   
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(4, 1fr);
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
   
-  @media (max-width: 767px) {
-    grid-template-columns: repeat(2, 1fr);
+  .remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
   }
   
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  &:hover .remove-btn {
+    opacity: 1;
   }
+`;
+
+const UploadProgress = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: ${props => props.progress}%;
+  height: 4px;
+  background: linear-gradient(to right, #1890ff, #52c41a);
+  transition: width 0.3s ease;
 `;
 
 // 设置默认表单数据
-const defaultLotteryForm = {
+const initialFormData = {
   title: '',
+  startDate: new Date().toISOString().split('T')[0], // 默认为当前日期
+  endDate: new Date().toISOString().split('T')[0], // 默认为当前日期
   prize: '',
+  prizeImage: '',  // 新增奖品图片字段
   maxParticipants: 50,
   drawDate: new Date().toISOString().split('T')[0], // 默认为当前日期
   description: '',
   isImmediateDraw: false,
-  customRangeEnabled: false,
+  customRangeEnabled: true,  // 默认选中
   startNumber: '1',
-  endNumber: '99'
+  endNumber: '50'  // 默认结束数字为50
 };
 
 const LotteryPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState(defaultLotteryForm);
+  const [formData, setFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
+  
+  // 添加图片上传相关状态
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+  
+  // 标签页状态
+  const [activeTab, setActiveTab] = useState('basic'); // basic, settings, advanced
+  
   // 处理表单输入变化
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // 处理日期选择按钮点击
-  const handleDateButtonClick = (days) => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    const formattedDate = date.toISOString().split('T')[0];
+    const { name, value, type, checked } = e.target;
+    
+    // 对于复选框，使用checked值；对于其他输入，使用value
+    const newValue = type === 'checkbox' ? checked : value;
     
     setFormData(prev => ({
       ...prev,
-      drawDate: formattedDate
+      [name]: newValue
     }));
   };
 
@@ -394,6 +515,13 @@ const LotteryPage = () => {
       return;
     }
 
+    // 如果正在上传图片，等待上传完成
+    if (isUploading) {
+      setError('请等待图片上传完成');
+      setLoading(false);
+      return;
+    }
+
     // 如果不是立即开奖，还需要验证抽奖日期
     if (!formData.isImmediateDraw && !formData.drawDate) {
       setError('请选择抽奖日期');
@@ -401,347 +529,507 @@ const LotteryPage = () => {
       return;
     }
 
-    // 验证抽奖日期
-    if (!formData.isImmediateDraw) {
-      const drawDate = new Date(formData.drawDate);
-      // 获取时区不受影响的日期部分
-      const drawYear = drawDate.getFullYear();
-      const drawMonth = drawDate.getMonth();
-      const drawDay = drawDate.getDate();
-      
-      const today = new Date();
-      const todayYear = today.getFullYear();
-      const todayMonth = today.getMonth();
-      const todayDay = today.getDate();
-      
-      // 比较年月日
-      const drawDateValue = new Date(drawYear, drawMonth, drawDay, 0, 0, 0, 0);
-      const todayValue = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
-
-      if (drawDateValue < todayValue) {
-        setError('抽奖日期不能早于今天');
-        setLoading(false);
-        return;
-      }
-    }
-
-    // 验证抽奖范围
-    if (formData.customRangeEnabled) {
-      const startNum = parseInt(formData.startNumber);
-      const endNum = parseInt(formData.endNumber);
-      
-      if (isNaN(startNum) || isNaN(endNum)) {
-        setError('请输入有效的抽奖范围');
-        setLoading(false);
-        return;
-      }
-      
-      if (startNum >= endNum) {
-        setError('起始数字必须小于结束数字');
-        setLoading(false);
-        return;
-      }
-      
-      if (startNum < 0 || endNum > 99) {
-        setError('抽奖范围必须在0-99之间');
-        setLoading(false);
-        return;
-      }
-    }
-
+    // 额外的日期验证逻辑
     try {
-      // 格式化日期为 YYYY-MM-DD
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      const drawDate = new Date(formData.drawDate);
       const today = new Date();
-      // 使用本地日期格式避免时区问题
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const formattedStartDate = `${year}-${month}-${day}`;
-      
-      let formattedDrawDate, formattedEndDate;
-      
-      if (formData.isImmediateDraw) {
-        // 立即开奖模式：开始日期、结束日期和抽奖日期都设为今天
-        formattedDrawDate = formattedStartDate;
-        formattedEndDate = formattedStartDate;
-      } else {
-        // 普通模式：使用用户选择的抽奖日期
-        const drawDate = new Date(formData.drawDate);
-        // 同样使用本地日期格式
-        const drawYear = drawDate.getFullYear();
-        const drawMonth = String(drawDate.getMonth() + 1).padStart(2, '0');
-        const drawDay = String(drawDate.getDate()).padStart(2, '0');
-        formattedDrawDate = `${drawYear}-${drawMonth}-${drawDay}`;
-        formattedEndDate = formattedDrawDate;
+      today.setHours(0, 0, 0, 0);
+
+      // 确保日期有效
+      if (isNaN(startDate) || isNaN(endDate) || isNaN(drawDate)) {
+        setError('请输入有效的日期');
+        setLoading(false);
+        return;
       }
 
-      const lotteryData = {
-        title: formData.title,
-        description: formData.description,
-        prize: formData.prize,
-        drawDate: formattedDrawDate,
-        maxParticipants: formData.maxParticipants || 100,
-        isOpen: true, // 始终设为开放状态，无论是否是立即开奖模式
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        isImmediateDraw: formData.isImmediateDraw,
-        // 添加抽奖范围
-        startNumber: formData.customRangeEnabled ? formData.startNumber : '1',
-        endNumber: formData.customRangeEnabled ? formData.endNumber : '99'
+      // 确保结束日期不早于开始日期
+      if (endDate < startDate) {
+        setError('结束日期不能早于开始日期');
+        setLoading(false);
+        return;
+      }
+
+      // 确保开奖日期不早于开始日期
+      if (drawDate < startDate) {
+        setError('开奖日期不能早于活动开始日期');
+        setLoading(false);
+        return;
+      }
+
+      // 格式化日期为 YYYY-MM-DD 格式
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
       };
 
-      console.log('Sending lottery data:', lotteryData);
-      const response = await lotteryAPI.createLottery(lotteryData);
-      console.log('Server response:', response);
-
-      setSuccess('抽奖创建成功！');
+      const formattedStartDate = formatDate(startDate);
+      const formattedEndDate = formatDate(endDate);
       
-      // 如果是立即开奖，直接跳转到详情页
-      if (formData.isImmediateDraw && response._id) {
-        navigate(`/lottery/${response._id}`, { replace: true });
-      } else if (response._id) {
-        // 普通抽奖创建成功，重置表单并跳转到列表页
-        setFormData(defaultLotteryForm);
-        // 短暂延迟以便用户看到成功消息
-        setTimeout(() => {
-          navigate('/lottery', { replace: true });
-        }, 1500);
+      // 如果是立即开奖模式，使用今天的日期
+      const formattedDrawDate = formData.isImmediateDraw 
+        ? formatDate(today) 
+        : formatDate(drawDate);
+
+      try {
+        // 构建请求数据
+        const lotteryData = {
+          title: formData.title,
+          description: formData.description,
+          prize: formData.prize,
+          prizeImage: formData.prizeImage, 
+          drawDate: formattedDrawDate,
+          maxParticipants: parseInt(formData.maxParticipants) || 50,
+          isOpen: true,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+          isImmediateDraw: formData.isImmediateDraw,
+          startNumber: formData.customRangeEnabled ? formData.startNumber : '1',
+          endNumber: formData.customRangeEnabled ? formData.endNumber : '50'
+        };
+
+        console.log('Sending lottery data:', lotteryData);
+        const response = await lotteryAPI.createLottery(lotteryData);
+        console.log('Server response:', response);
+
+        setSuccess('抽奖创建成功！');
+        
+        // 如果是立即开奖，直接跳转到详情页
+        if (formData.isImmediateDraw && response._id) {
+          navigate(`/lottery/${response._id}`, { replace: true });
+        } else if (response._id) {
+          // 普通抽奖创建成功，重置表单并跳转到列表页
+          setFormData(initialFormData);
+          setImageFile(null);
+          setImagePreview('');
+          setUploadProgress(0);
+          
+          // 短暂延迟以便用户看到成功消息
+          setTimeout(() => {
+            navigate('/lottery', { replace: true });
+          }, 1500);
+        }
+      } catch (err) {
+        console.error('Error creating lottery:', err);
+        setError(err.message || '创建抽奖失败');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error creating lottery:', err);
-      setError(err.message || '创建抽奖失败');
-    } finally {
+    } catch (error) {
+      console.error('Date validation error:', error);
+      setError('日期格式错误，请检查输入的日期');
       setLoading(false);
+    }
+  };
+  
+  // 处理图片上传
+  const handleImageSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // 验证文件类型
+    if (!file.type.match('image.*')) {
+      setError('请选择图片文件');
+      return;
+    }
+    
+    // 创建预览
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+    
+    // 保存文件
+    setImageFile(file);
+    
+    // 模拟上传过程
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      
+      // 使用模拟进度
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          // 只模拟到90%，最后10%在真正上传完成后设置
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+      
+      // 在实际项目中，这里应该调用真实的上传API
+      // 暂时模拟上传结果
+      setTimeout(() => {
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+        
+        // 更新formData中的图片URL (使用预览图代替实际上传)
+        setFormData(prev => ({
+          ...prev,
+          prizeImage: imagePreview
+        }));
+        
+        setIsUploading(false);
+      }, 2000);
+      
+    } catch (err) {
+      setError(`图片上传失败: ${err.message || '未知错误'}`);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   return (
     <PageContainer>
-      <div>
-        <Title>创建新的抽奖</Title>
-        <Subtitle>填写表单创建一个新的抽奖活动</Subtitle>
-      </div>
+      <PageHeader>
+        <Title>创建抽奖活动</Title>
+        <Subtitle>填写以下信息创建一个新的抽奖活动，带 * 的是必填项</Subtitle>
+      </PageHeader>
+      
+      <TabsNav>
+        <TabButton 
+          $active={activeTab === 'basic'} 
+          onClick={() => setActiveTab('basic')}
+        >
+          基本信息
+        </TabButton>
+        <TabButton 
+          $active={activeTab === 'settings'} 
+          onClick={() => setActiveTab('settings')}
+        >
+          抽奖设置
+        </TabButton>
+        <TabButton 
+          $active={activeTab === 'advanced'} 
+          onClick={() => setActiveTab('advanced')}
+        >
+          高级选项
+        </TabButton>
+      </TabsNav>
       
       <form onSubmit={handleSubmit}>
-        <FormGroup>
-          <Label required>抽奖标题</Label>
-          <Input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="例如：新年特别抽奖"
-          />
-        </FormGroup>
-        
-        <FormGrid>
-          <FormGroup>
-            <Label required>奖品</Label>
-            <Input
-              type="text"
-              name="prize"
-              value={formData.prize}
-              onChange={handleInputChange}
-              placeholder="例如：iPhone 15 Pro"
-            />
-          </FormGroup>
+        <FormContainer>
+          {/* 基本信息选项卡 */}
+          {activeTab === 'basic' && (
+            <>
+              <SectionTitle>抽奖活动基本信息</SectionTitle>
+              
+              <FormGroup>
+                <Label required>活动标题</Label>
+                <Input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="例如：新年特别抽奖"
+                />
+              </FormGroup>
+              
+              <FormRow>
+                <FormColumn>
+                  <Label required>奖品</Label>
+                  <Input
+                    type="text"
+                    name="prize"
+                    value={formData.prize}
+                    onChange={handleInputChange}
+                    placeholder="例如：iPhone 15 Pro"
+                  />
+                </FormColumn>
+                
+                <FormColumn>
+                  <Label required>最大参与人数</Label>
+                  <Input
+                    type="number"
+                    name="maxParticipants"
+                    value={formData.maxParticipants}
+                    onChange={handleInputChange}
+                    min="1"
+                  />
+                </FormColumn>
+              </FormRow>
+              
+              <FormGroup>
+                <Label>奖品图片</Label>
+                <ImageUploader onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                  />
+                  
+                  {!imagePreview ? (
+                    <>
+                      <AddIcon />
+                      <UploadText>点击上传图片</UploadText>
+                    </>
+                  ) : (
+                    <ImagePreview>
+                      <img src={imagePreview} alt="奖品预览" />
+                      <button 
+                        className="remove-btn" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImageFile(null);
+                          setImagePreview('');
+                          setUploadProgress(0);
+                          setIsUploading(false);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
+                      >
+                        ×
+                      </button>
+                    </ImagePreview>
+                  )}
+                  
+                  {isUploading && <UploadProgress progress={uploadProgress} />}
+                </ImageUploader>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#999' }}>
+                  上传奖品图片，将在抽奖详情中显示
+                </div>
+              </FormGroup>
+              
+              <FormGroup>
+                <Label required>活动描述</Label>
+                <TextArea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="请详细描述本次抽奖活动的规则、奖品详情等信息..."
+                />
+              </FormGroup>
+            </>
+          )}
           
-          <FormGroup>
-            <Label required>最大参与人数</Label>
-            <Input
-              type="number"
-              name="maxParticipants"
-              value={formData.maxParticipants}
-              onChange={handleInputChange}
-              min="1"
-            />
-          </FormGroup>
-          
-          <FormGroup>
-            <Label>起始数字</Label>
-            <Input
-              type="number"
-              name="startNumber"
-              value={formData.startNumber}
-              onChange={handleInputChange}
-              min="0"
-              max="98"
-              disabled={!formData.customRangeEnabled}
-              style={{
-                backgroundColor: !formData.customRangeEnabled ? '#f5f5f5' : 'white',
-                cursor: !formData.customRangeEnabled ? 'not-allowed' : 'pointer'
-              }}
-            />
-          </FormGroup>
-          
-          <FormGroup>
-            <Label>结束数字</Label>
-            <Input
-              type="number"
-              name="endNumber"
-              value={formData.endNumber}
-              onChange={handleInputChange}
-              min="1"
-              max="99"
-              disabled={!formData.customRangeEnabled}
-              style={{
-                backgroundColor: !formData.customRangeEnabled ? '#f5f5f5' : 'white',
-                cursor: !formData.customRangeEnabled ? 'not-allowed' : 'pointer'
-              }}
-            />
-          </FormGroup>
-        </FormGrid>
-        
-        <FormRow>
-          <FormColumn>
-            <Label required>开奖日期</Label>
-            <Input
-              type="date"
-              name="drawDate"
-              value={formData.drawDate}
-              onChange={handleInputChange}
-              disabled={formData.isImmediateDraw}
-              style={{
-                backgroundColor: formData.isImmediateDraw ? '#f5f5f5' : 'white',
-                cursor: formData.isImmediateDraw ? 'not-allowed' : 'pointer'
-              }}
-            />
-            {!formData.isImmediateDraw && (
-              <DateButtonGroup>
-                <DateButton 
-                  type="button" 
-                  onClick={() => handleDateButtonClick(0)}
-                >
-                  今天
-                </DateButton>
-                <DateButton 
-                  type="button" 
-                  onClick={() => handleDateButtonClick(7)}
-                >
-                  7天后
-                </DateButton>
-                <DateButton 
-                  type="button" 
-                  onClick={() => handleDateButtonClick(15)}
-                >
-                  15天后
-                </DateButton>
-                <DateButton 
-                  type="button" 
-                  onClick={() => handleDateButtonClick(30)}
-                >
-                  30天后
-                </DateButton>
-              </DateButtonGroup>
-            )}
-          </FormColumn>
-          
-          <FormColumn>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <CheckboxContainer style={{ marginBottom: '0' }}>
-                <Checkbox 
-                  type="checkbox" 
-                  id="isImmediateDraw"
-                  name="isImmediateDraw"
-                  checked={formData.isImmediateDraw}
-                  onChange={(e) => {
-                    const { name, checked } = e.target;
-                    if (checked) {
-                      const today = new Date();
-                      const year = today.getFullYear();
-                      const month = String(today.getMonth() + 1).padStart(2, '0');
-                      const day = String(today.getDate()).padStart(2, '0');
-                      const formattedDate = `${year}-${month}-${day}`;
-                      
+          {/* 抽奖设置选项卡 */}
+          {activeTab === 'settings' && (
+            <>
+              <SectionTitle>抽奖时间与方式设置</SectionTitle>
+              
+              <FormRow>
+                <FormColumn>
+                  <Label required>开始日期</Label>
+                  <Input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleInputChange}
+                  />
+                </FormColumn>
+                
+                <FormColumn>
+                  <Label required>结束日期</Label>
+                  <Input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleInputChange}
+                  />
+                </FormColumn>
+              </FormRow>
+              
+              <FormGroup>
+                <CheckboxContainer>
+                  <Checkbox 
+                    type="checkbox" 
+                    id="isImmediateDraw"
+                    name="isImmediateDraw"
+                    checked={formData.isImmediateDraw}
+                    onChange={(e) => {
+                      const { name, checked } = e.target;
                       setFormData(prev => ({
                         ...prev,
                         [name]: checked,
-                        drawDate: formattedDate
+                        drawDate: checked ? new Date().toISOString().split('T')[0] : prev.drawDate
                       }));
-                    } else {
+                    }}
+                  />
+                  <CheckboxLabel htmlFor="isImmediateDraw">
+                    立即开奖模式
+                  </CheckboxLabel>
+                </CheckboxContainer>
+                
+                {formData.isImmediateDraw && (
+                  <div style={{ 
+                    fontSize: '0.9rem', 
+                    color: '#ff4d4f',
+                    marginTop: '0.5rem',
+                    padding: '0.7rem',
+                    background: '#fff1f0',
+                    borderRadius: '6px',
+                    border: '1px dashed #ffa39e'
+                  }}>
+                    立即开奖模式下，创建成功后将自动开奖，开奖日期将设为今天
+                  </div>
+                )}
+              </FormGroup>
+              
+              {!formData.isImmediateDraw && (
+                <FormGroup>
+                  <Label required>开奖日期</Label>
+                  <Input
+                    type="date"
+                    name="drawDate"
+                    value={formData.drawDate}
+                    onChange={handleInputChange}
+                    min={formData.startDate}
+                  />
+                </FormGroup>
+              )}
+            </>
+          )}
+          
+          {/* 高级选项选项卡 */}
+          {activeTab === 'advanced' && (
+            <>
+              <SectionTitle>高级抽奖设置</SectionTitle>
+              
+              <FormGroup>
+                <CheckboxContainer>
+                  <Checkbox 
+                    type="checkbox" 
+                    id="customRangeEnabled"
+                    name="customRangeEnabled"
+                    checked={formData.customRangeEnabled}
+                    onChange={(e) => {
+                      const { name, checked } = e.target;
                       setFormData(prev => ({
                         ...prev,
                         [name]: checked
                       }));
-                    }
-                  }}
-                />
-                <CheckboxLabel htmlFor="isImmediateDraw">
-                  创建后立即开奖
-                </CheckboxLabel>
-              </CheckboxContainer>
+                    }}
+                  />
+                  <CheckboxLabel htmlFor="customRangeEnabled">
+                    自定义抽奖号码范围
+                  </CheckboxLabel>
+                </CheckboxContainer>
+              </FormGroup>
               
-              <CheckboxContainer style={{ marginBottom: '0' }}>
-                <Checkbox 
-                  type="checkbox" 
-                  id="customRangeEnabled"
-                  name="customRangeEnabled"
-                  checked={formData.customRangeEnabled}
-                  onChange={(e) => {
-                    const { name, checked } = e.target;
-                    setFormData(prev => ({
-                      ...prev,
-                      [name]: checked
-                    }));
-                  }}
-                />
-                <CheckboxLabel htmlFor="customRangeEnabled">
-                  自定义抽奖号码范围
-                </CheckboxLabel>
-              </CheckboxContainer>
-              
-              {formData.isImmediateDraw && (
-                <div style={{ 
-                  fontSize: '0.85rem', 
-                  color: '#999',
-                  marginTop: '0.2rem' 
-                }}>
-                  立即开奖模式下，开奖日期设为今天
-                </div>
-              )}
+              <FormRow>
+                <FormColumn>
+                  <Label>起始数字</Label>
+                  <Input
+                    type="number"
+                    name="startNumber"
+                    value={formData.startNumber}
+                    onChange={handleInputChange}
+                    min="0"
+                    max="98"
+                    disabled={!formData.customRangeEnabled}
+                    style={{
+                      backgroundColor: !formData.customRangeEnabled ? '#f5f5f5' : 'white',
+                      cursor: !formData.customRangeEnabled ? 'not-allowed' : 'pointer'
+                    }}
+                  />
+                </FormColumn>
+                
+                <FormColumn>
+                  <Label>结束数字</Label>
+                  <Input
+                    type="number"
+                    name="endNumber"
+                    value={formData.endNumber}
+                    onChange={handleInputChange}
+                    min={parseInt(formData.startNumber) + 1}
+                    disabled={!formData.customRangeEnabled}
+                    style={{
+                      backgroundColor: !formData.customRangeEnabled ? '#f5f5f5' : 'white',
+                      cursor: !formData.customRangeEnabled ? 'not-allowed' : 'pointer'
+                    }}
+                  />
+                </FormColumn>
+              </FormRow>
               
               {!formData.customRangeEnabled && (
                 <div style={{ 
                   fontSize: '0.85rem', 
-                  color: '#999'
+                  color: '#999',
+                  marginTop: '0.5rem' 
                 }}>
-                  默认抽奖范围：1-99
+                  默认抽奖范围: 1 - 50
                 </div>
               )}
+            </>
+          )}
+          
+          {/* 错误和成功消息 */}
+          {error && (
+            <ErrorMessage>
+              {error}
+            </ErrorMessage>
+          )}
+          
+          {success && (
+            <SuccessMessage>
+              {success}
+            </SuccessMessage>
+          )}
+          
+          {/* 按钮区域 - 固定在底部 */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            borderTop: '1px solid #f0f0f0',
+            paddingTop: '1.5rem',
+            marginTop: '1.5rem'
+          }}>
+            <div>
+              <Button 
+                type="button" 
+                onClick={() => {
+                  setFormData(initialFormData);
+                  setImageFile(null);
+                  setImagePreview('');
+                  setUploadProgress(0);
+                  setIsUploading(false);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
+              >
+                重置
+              </Button>
             </div>
-          </FormColumn>
-        </FormRow>
-        
-        <FormGroup>
-          <Label>抽奖说明</Label>
-          <TextArea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="请输入抽奖活动的详细说明..."
-          />
-        </FormGroup>
-        
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        {success && <SuccessMessage>{success}</SuccessMessage>}
-        
-        <ButtonGroup>
-          <Button 
-            type="button" 
-            onClick={() => {
-              setFormData(defaultLotteryForm);
-            }}
-          >
-            重置
-          </Button>
-          <Button 
-            type="submit" 
-            primary
-            disabled={loading}
-          >
-            {loading ? '创建中...' : '创建抽奖'}
-          </Button>
-        </ButtonGroup>
+            
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {activeTab !== 'basic' && (
+                <Button 
+                  type="button" 
+                  onClick={() => setActiveTab(activeTab === 'settings' ? 'basic' : 'settings')}
+                >
+                  上一步
+                </Button>
+              )}
+              
+              {activeTab !== 'advanced' ? (
+                <Button 
+                  type="button" 
+                  primary
+                  onClick={() => setActiveTab(activeTab === 'basic' ? 'settings' : 'advanced')}
+                >
+                  下一步
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  primary
+                  disabled={loading}
+                >
+                  {loading ? '创建中...' : '提交创建'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </FormContainer>
       </form>
     </PageContainer>
   );

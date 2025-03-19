@@ -2,12 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // 加载环境变量
 dotenv.config();
 
 // 导入路由
 const lotteryRoutes = require('./src/routes/lotteryRoutes');
+const imageRoutes = require('./src/routes/imageRoutes');
 
 // 创建Express应用
 const app = express();
@@ -15,6 +17,9 @@ const app = express();
 // 中间件
 app.use(cors());
 app.use(express.json());
+
+// 静态文件服务
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 连接MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -32,6 +37,7 @@ app.get('/', (req, res) => {
 
 // API路由
 app.use('/api/lotteries', lotteryRoutes);
+app.use('/api/images', imageRoutes);
 
 // 启动服务器
 const PORT = process.env.PORT || 5000;

@@ -683,6 +683,23 @@ const InfoGrid = styled.div`
   }
 `;
 
+const PrizeImage = styled.img`
+  max-width: 100%;
+  height: auto;
+  max-height: 250px;
+  border-radius: 8px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  object-fit: contain;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+`;
+
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -1095,6 +1112,14 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
           <Label>奖品</Label>
           <Value>{lottery.prize}</Value>
         </InfoGroup>
+        
+        {/* 添加奖品图片显示 */}
+        {lottery.prizeImage && (
+          <div style={{ marginTop: '0.5rem', marginBottom: '1rem', textAlign: 'center' }}>
+            <PrizeImage src={lottery.prizeImage} alt={lottery.prize} />
+          </div>
+        )}
+        
         <InfoGroup>
           <Label>参与人数</Label>
           <Value>{lottery.participants ? lottery.participants.length : 0}/{lottery.maxParticipants}</Value>
