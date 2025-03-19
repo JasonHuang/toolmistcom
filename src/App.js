@@ -178,8 +178,9 @@ function App() {
         
         <Main>
           <Routes>
-            <Route path="/" element={<MainContainer />} />
-            <Route path="/lottery" element={<MainContainer />} />
+            <Route path="/" element={<MainContainer defaultTab="create" />} />
+            <Route path="/lottery" element={<MainContainer defaultTab="list" />} />
+            <Route path="/lottery/create" element={<MainContainer defaultTab="create" />} />
             <Route path="/lottery/:id" element={<MainContainer showDetails={true} />} />
           </Routes>
         </Main>

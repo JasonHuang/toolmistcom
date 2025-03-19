@@ -496,12 +496,16 @@ const LotteryPage = () => {
 
       setSuccess('抽奖创建成功！');
       
-      // 如果是立即开奖，直接跳转到详情页，不再自动执行抽奖
+      // 如果是立即开奖，直接跳转到详情页
       if (formData.isImmediateDraw && response._id) {
-        navigate(`/lottery/${response._id}`);
+        navigate(`/lottery/${response._id}`, { replace: true });
       } else if (response._id) {
-        // 普通抽奖创建成功，重置表单
+        // 普通抽奖创建成功，重置表单并跳转到列表页
         setFormData(defaultLotteryForm);
+        // 短暂延迟以便用户看到成功消息
+        setTimeout(() => {
+          navigate('/lottery', { replace: true });
+        }, 1500);
       }
     } catch (err) {
       console.error('Error creating lottery:', err);

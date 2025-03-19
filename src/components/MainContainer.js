@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import LotteryPage from './LotteryPage';
 import LotteryList from './LotteryList';
 import LotteryHistoryDetail from './LotteryHistoryDetail';
@@ -51,16 +51,34 @@ const Tab = styled.div`
   }
 `;
 
-const MainContainer = ({ showDetails }) => {
+const MainContainer = ({ showDetails, defaultTab = 'create' }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('create');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  
+  // 处理从其他页面传递过来的tab状态
+  useEffect(() => {
+    if (location.state && location.state.activeTab) {
+      setActiveTab(location.state.activeTab);
+    } else if (defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [location.state, defaultTab]);
+
+  // 确保处理URL "/lottery" 路径时显示列表
+  useEffect(() => {
+    if (location.pathname === '/lottery' && !id && !showDetails) {
+      setActiveTab('list');
+    }
+  }, [location.pathname, id, showDetails]);
   
   // 检查是否需要显示详情页（从URL参数或传入属性）
   useEffect(() => {
     if (showDetails && id) {
       setActiveTab('list');
+      // 防止在返回后又立即加载详情
       if (!selectedRecord || selectedRecord._id !== id) {
         // 从API获取抽奖记录
         lotteryAPI.getLotteryById(id)
@@ -69,31 +87,45 @@ const MainContainer = ({ showDetails }) => {
           })
           .catch(err => {
             console.error('获取抽奖详情失败:', err);
+            // 出错时重定向到列表页
+            navigate('/lottery', { replace: true });
           });
       }
+    } else {
+      // 如果URL不包含id参数，确保清空选中记录
+      if (selectedRecord) {
+        setSelectedRecord(null);
+      }
     }
-  }, [showDetails, id, selectedRecord]);
+  }, [showDetails, id]);  // 故意移除selectedRecord依赖，防止循环
   
   const handleTabClick = (tabName) => {
     setActiveTab(tabName);
-    setSelectedRecord(null); // 切换标签时重置详情视图
+    // 切换标签时重置详情视图
+    setSelectedRecord(null);
     
-    // 如果切换到非详情页，更新URL
-    if (id) {
-      navigate('/lottery');
+    // 如果点击的是创建标签，导航到创建页面
+    if (tabName === 'create') {
+      navigate('/lottery/create', { replace: true });
+    } 
+    // 如果点击的是列表标签，导航到列表页面
+    else if (tabName === 'list') {
+      navigate('/lottery', { replace: true });
     }
   };
   
   const handleRecordSelect = (record) => {
-    setSelectedRecord(record);
-    // 更新URL以反映选择的记录
-    navigate(`/lottery/${record._id}`);
+    if (record) {
+      setSelectedRecord(record);
+      // 更新URL以反映选择的记录
+      navigate(`/lottery/${record._id}`);
+    }
   };
   
   const handleBack = () => {
-    // 先设置selectedRecord为null，再更新URL，避免闪烁
+    // 立即清空选中记录
     setSelectedRecord(null);
-    // 使用replace而不是push，避免历史堆栈问题
+    // 导航到列表页
     navigate('/lottery', { replace: true });
   };
   

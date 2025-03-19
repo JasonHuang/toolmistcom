@@ -679,7 +679,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
             // 如果是通过MainContainer渲染的，使用onBack回调
             onBack();
           } else {
-            // 如果是通过路由渲染的，使用navigate返回
+            // 直接导航到列表页
             navigate('/lottery', { replace: true });
           }
         }}>返回列表</BackButton>
@@ -697,7 +697,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
             // 如果是通过MainContainer渲染的，使用onBack回调
             onBack();
           } else {
-            // 如果是通过路由渲染的，使用navigate返回
+            // 直接导航到列表页
             navigate('/lottery', { replace: true });
           }
         }}>返回列表</BackButton>
@@ -970,7 +970,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
           // 如果是通过MainContainer渲染的，使用onBack回调
           onBack();
         } else {
-          // 如果是通过路由渲染的，使用navigate返回
+          // 直接导航到列表页
           navigate('/lottery', { replace: true });
         }
       }}>返回列表</BackButton>
