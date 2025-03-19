@@ -64,16 +64,16 @@ const FilterLabel = styled.span`
 const FilterButton = styled.button`
   padding: 0.5rem 1rem;
   margin-right: 0.5rem;
-  border: 1px solid ${props => props.active ? '#ff4d4f' : '#d9d9d9'};
-  background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.1)' : 'white'};
-  color: ${props => props.active ? '#ff4d4f' : '#666'};
+  border: 1px solid ${props => props.$active ? '#ff4d4f' : '#d9d9d9'};
+  background-color: ${props => props.$active ? 'rgba(255, 77, 79, 0.1)' : 'white'};
+  color: ${props => props.$active ? '#ff4d4f' : '#666'};
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: ${props => props.active ? '600' : '400'};
+  font-weight: ${props => props.$active ? '600' : '400'};
   
   &:hover {
-    background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.15)' : '#f5f5f5'};
+    background-color: ${props => props.$active ? 'rgba(255, 77, 79, 0.15)' : '#f5f5f5'};
     transform: translateY(-2px);
   }
   
@@ -242,16 +242,16 @@ const PageButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid ${props => props.active ? '#ff4d4f' : '#d9d9d9'};
-  background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.1)' : 'white'};
-  color: ${props => props.active ? '#ff4d4f' : '#666'};
+  border: 1px solid ${props => props.$active ? '#ff4d4f' : '#d9d9d9'};
+  background-color: ${props => props.$active ? 'rgba(255, 77, 79, 0.1)' : 'white'};
+  color: ${props => props.$active ? '#ff4d4f' : '#666'};
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: ${props => props.active ? '600' : '400'};
+  font-weight: ${props => props.$active ? '600' : '400'};
   
   &:hover {
-    background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.15)' : '#f5f5f5'};
+    background-color: ${props => props.$active ? 'rgba(255, 77, 79, 0.15)' : '#f5f5f5'};
     transform: translateY(-2px);
   }
   
@@ -514,7 +514,7 @@ const LotteryList = ({ onRecordSelect }) => {
       paginationButtons.push(
         <PageButton 
           key={i} 
-          active={i === currentPage}
+          $active={i === currentPage}
           onClick={() => setCurrentPage(i)}
         >
           {i}
@@ -552,19 +552,19 @@ const LotteryList = ({ onRecordSelect }) => {
       <FilterContainer>
         <FilterLabel>状态:</FilterLabel>
         <FilterButton 
-          active={filter === 'all'} 
+          $active={filter === 'all'} 
           onClick={() => setFilter('all')}
         >
           全部
         </FilterButton>
         <FilterButton 
-          active={filter === 'open'} 
+          $active={filter === 'open'} 
           onClick={() => setFilter('open')}
         >
           进行中
         </FilterButton>
         <FilterButton 
-          active={filter === 'closed'} 
+          $active={filter === 'closed'} 
           onClick={() => setFilter('closed')}
         >
           已结束

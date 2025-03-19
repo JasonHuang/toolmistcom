@@ -149,15 +149,63 @@ export const lotteryAPI = {
     }
   },
 
-  // 执行抽奖
+  // 执行抽奖（旧方法，已弃用）
   drawLottery: async (id, drawConfig = {}) => {
     try {
+      console.warn('使用已弃用的drawLottery方法，请迁移到generateAndSaveLotteryNumber');
       const response = await fetch(`${API_URL}/lotteries/${id}/draw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(drawConfig),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '抽奖失败');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('抽奖错误:', error);
+      throw error;
+    }
+  },
+
+  // 获取随机数但不保存抽奖结果（用于动画显示，已弃用）
+  generateLotteryNumber: async (id, config = {}) => {
+    try {
+      console.warn('使用已弃用的generateLotteryNumber方法，请迁移到generateAndSaveLotteryNumber');
+      const response = await fetch(`${API_URL}/lotteries/${id}/generateNumber`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '获取随机数失败');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('获取随机数错误:', error);
+      throw error;
+    }
+  },
+  
+  // 生成随机数并立即保存结果（新方法）
+  generateAndSaveLotteryNumber: async (id, config = {}) => {
+    try {
+      const response = await fetch(`${API_URL}/lotteries/${id}/generateAndSave`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config),
       });
 
       if (!response.ok) {
@@ -191,5 +239,5 @@ export const lotteryAPI = {
       console.error('删除抽奖错误:', error);
       throw error;
     }
-  }
+  },
 }; 

@@ -371,6 +371,51 @@ const DrawAnimationContainer = styled.div`
     box-shadow: 0 16px 32px rgba(255, 77, 79, 0.3);
     transform: translateY(-3px);
   }
+  
+  /* 添加跑马灯边框效果 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 15px;
+    background: linear-gradient(90deg, 
+      #ff4d4f, #ff7a45, #fa8c16, #faad14, 
+      #fadb14, #a0d911, #52c41a, #13c2c2, 
+      #1890ff, #2f54eb, #722ed1, #eb2f96, #ff4d4f);
+    background-size: 400% 400%;
+    z-index: -1;
+    animation: ${props => props.$animating ? 'border-animation 3s linear infinite' : 'none'};
+  }
+  
+  /* 添加闪烁光效 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8), transparent 60%);
+    opacity: 0;
+    animation: ${props => props.$animating ? 'flicker 2s ease-in-out infinite' : 'none'};
+  }
+  
+  @keyframes border-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  @keyframes flicker {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.8; }
+  }
 `;
 
 const AnimationNumber = styled.div`
@@ -378,8 +423,56 @@ const AnimationNumber = styled.div`
   font-weight: bold;
   color: #ff4d4f;
   text-shadow: 2px 2px 8px rgba(255, 77, 79, 0.3);
-  animation: ${props => props.isSlowing ? 'pulse 0.5s infinite' : 'none'};
+  animation: ${props => props.$isSlowing ? 'pulse 0.5s infinite' : 'number-animation 0.3s infinite'};
   transform-origin: center;
+  transition: all 0.1s ease-in-out;
+  
+  /* 加入随机变形效果 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    mix-blend-mode: overlay;
+    z-index: 1;
+    animation: flash 0.2s ease-in-out infinite;
+  }
+  
+  @keyframes flash {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.3; }
+  }
+  
+  @keyframes number-animation {
+    0% {
+      color: #ff4d4f;
+      text-shadow: 2px 2px 8px rgba(255, 77, 79, 0.3);
+      transform: translateY(0) scale(1);
+    }
+    25% {
+      color: #faad14;
+      text-shadow: 2px 2px 8px rgba(250, 173, 20, 0.3);
+      transform: translateY(-2px) scale(1.02);
+    }
+    50% {
+      color: #52c41a;
+      text-shadow: 2px 2px 8px rgba(82, 196, 26, 0.3);
+      transform: translateY(0) scale(1.05);
+    }
+    75% {
+      color: #1890ff;
+      text-shadow: 2px 2px 8px rgba(24, 144, 255, 0.3);
+      transform: translateY(2px) scale(1.02);
+    }
+    100% {
+      color: #ff4d4f;
+      text-shadow: 2px 2px 8px rgba(255, 77, 79, 0.3);
+      transform: translateY(0) scale(1);
+    }
+  }
   
   @keyframes pulse {
     0% {
@@ -473,12 +566,34 @@ const FinalResult = styled(Result)`
     animation: shine 3s infinite ease-in-out;
   }
   
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(255, 77, 79, 0.1) 0%, transparent 70%);
+    animation: pulse-bg 2s infinite;
+  }
+  
   @keyframes shine {
     0% {
       transform: translateX(-100%) rotate(30deg);
     }
     100% {
       transform: translateX(100%) rotate(30deg);
+    }
+  }
+  
+  @keyframes pulse-bg {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.2;
     }
   }
 `;
@@ -520,24 +635,24 @@ const NumberCell = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  font-weight: ${props => props.active || props.highlight ? 'bold' : 'normal'};
+  font-weight: ${props => props.$active || props.$highlight ? 'bold' : 'normal'};
   border-radius: 8px;
-  border: 1px solid ${props => props.highlight ? '#ff4d4f' : '#e8e8e8'};
+  border: 1px solid ${props => props.$highlight ? '#ff4d4f' : '#e8e8e8'};
   background-color: ${props => {
-    if (props.highlight) return '#fff1f0';
-    if (props.active) return '#f0f7ff';
+    if (props.$highlight) return '#fff1f0';
+    if (props.$active) return '#f0f7ff';
     return 'white';
   }};
   color: ${props => {
-    if (props.highlight) return '#ff4d4f';
-    if (props.active) return '#1890ff';
+    if (props.$highlight) return '#ff4d4f';
+    if (props.$active) return '#1890ff';
     return '#333';
   }};
   transition: all 0.2s ease;
-  transform: ${props => props.active ? 'scale(1.15)' : 'scale(1)'};
-  box-shadow: ${props => props.active ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none'};
+  transform: ${props => props.$active ? 'scale(1.15)' : 'scale(1)'};
+  box-shadow: ${props => props.$active ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none'};
   
-  ${props => props.highlight && css`
+  ${props => props.$highlight && css`
     animation: pulse 2s infinite;
     
     @keyframes pulse {
@@ -755,7 +870,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
   };
 
   // 处理抽奖动画
-  const handleDrawAnimation = () => {
+  const handleDrawAnimation = async () => {
     if (!lottery.isOpen) {
       setError('该抽奖活动已经结束');
       return;
@@ -770,7 +885,6 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
     setCurrentNumber(null);
     setFinalNumber(null);
     setIsSlowing(false);
-    setShowConfirmButton(false);
     setError('');
     
     // 获取可用数字
@@ -783,137 +897,118 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
       return;
     }
     
-    // 随机选择一个结果
-    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
-    const result = availableNumbers[randomIndex];
-    console.log('预选的随机结果:', result);
-    
-    // 定义动画阶段
-    const TOTAL_ANIMATION_TIME = 5000; // 总动画时间5秒
-    const FAST_PHASE = 2500;           // 快速阶段2.5秒
-    const SLOWING_PHASE = 2500;        // 减速阶段2.5秒
-    
-    const startTime = Date.now();      // 动画开始时间
-    let animationFrame = null;         // 存储动画帧ID
-    
-    // 更新动画的递归函数
-    const updateAnimation = () => {
-      const currentTime = Date.now();
-      const elapsedTime = currentTime - startTime;
-      
-      // 如果动画已经运行完预设时间，停止
-      if (elapsedTime >= TOTAL_ANIMATION_TIME) {
-        // 显示最终结果
-        setCurrentNumber(result);
-        setFinalNumber(result);
-        setAnimationRunning(false);
-        setShowConfirmButton(true);
-        return;
-      }
-      
-      // 进入减速阶段
-      if (elapsedTime > FAST_PHASE && !isSlowing) {
-        setIsSlowing(true);
-      }
-      
-      // 根据时间计算动画间隔
-      let nextDelay;
-      if (elapsedTime <= FAST_PHASE) {
-        // 快速阶段：固定间隔100ms
-        nextDelay = 100;
-      } else {
-        // 减速阶段：间隔从100ms逐渐增加到500ms
-        const slowingProgress = (elapsedTime - FAST_PHASE) / SLOWING_PHASE;
-        nextDelay = 100 + Math.floor(400 * slowingProgress);
-      }
-      
-      // 随机选择一个数字显示
-      // 在接近结束时，逐渐增加显示结果的概率
-      let nextNumber;
-      const showResultProb = Math.min(1, (elapsedTime - FAST_PHASE) / SLOWING_PHASE);
-      
-      if (Math.random() < showResultProb && elapsedTime > FAST_PHASE + SLOWING_PHASE * 0.6) {
-        // 增加最终结果出现的概率
-        nextNumber = result;
-      } else {
-        // 随机选择一个非结果数字
-        do {
-          const randomIdx = Math.floor(Math.random() * availableNumbersRef.current.length);
-          nextNumber = availableNumbersRef.current[randomIdx];
-        } while (nextNumber === result && availableNumbersRef.current.length > 1);
-      }
-      
-      setCurrentNumber(nextNumber);
-      
-      // 使用setTimeout安排下一次更新
-      animationRef.current = setTimeout(updateAnimation, nextDelay);
-    };
-    
-    // 开始动画循环
-    updateAnimation();
-  };
-  
-  // 处理确认结果
-  const handleConfirmResult = async () => {
-    if (!finalNumber) {
-      return;
+    // 清除之前的动画计时器
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+      animationRef.current = null;
     }
+    
+    console.log('开始抽奖动画，可用数字:', availableNumbersRef.current);
     
     try {
-      setLoading(true);
-      // 将结果格式化为两位数，与后端格式保持一致
-      const formattedResult = finalNumber.toString().padStart(2, '0');
-      await handleDraw(formattedResult);
-    } catch (error) {
-      console.error('确认结果失败:', error);
-      setError(error.message || '确认结果失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 执行抽奖 API 调用
-  const handleDraw = async (drawnNumber) => {
-    if (!lottery.isOpen) {
-      setError('该抽奖活动已经结束');
-      return;
-    }
-
-    // 验证抽奖范围
-    if (startNumber >= endNumber) {
-      setError('起始数字必须小于结束数字');
-      return;
-    }
-
-    if (startNumber < 0 || endNumber > 99) {
-      setError('抽奖范围必须在0-99之间');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-      
+      // 开始API请求
       const drawConfig = {
         excludedNumbers: excludedNumbers.length > 0 
           ? excludedNumbers.map(num => num.toString()) 
           : undefined,
         startNumber: startNumber.toString(),
-        endNumber: endNumber.toString(),
-        fixedResult: drawnNumber ? drawnNumber.toString() : undefined
+        endNumber: endNumber.toString()
       };
-
-      console.log('发送抽奖参数:', drawConfig);
-      const updatedLottery = await lotteryAPI.drawLottery(lottery._id, drawConfig);
-      console.log('获取更新后的彩票:', updatedLottery);
-      setLottery(updatedLottery);
-      // 重置设置状态
-      setShowDrawSettings(false);
-    } catch (err) {
-      console.error('抽奖失败:', err);
-      setError(err.message || '抽奖失败');
-    } finally {
-      setLoading(false);
+      
+      // 发送API请求，但不等待结果继续执行动画
+      const apiPromise = lotteryAPI.generateAndSaveLotteryNumber(lottery._id, drawConfig);
+      console.log('API请求已发送');
+      
+      // 设置动画参数
+      const ANIMATION_DURATION = 5000; // 总动画时间5秒
+      const startTime = Date.now();
+      
+      // 快速阶段 - 使用setInterval替代setTimeout和requestAnimationFrame
+      let fastInterval = 100; // 每100毫秒切换一次数字
+      
+      // 开始快速阶段动画
+      animationRef.current = setInterval(() => {
+        // 选择一个随机数字显示
+        const randomIndex = Math.floor(Math.random() * availableNumbersRef.current.length);
+        const randomNumber = availableNumbersRef.current[randomIndex];
+        setCurrentNumber(randomNumber);
+        
+        // 计算经过的时间
+        const elapsed = Date.now() - startTime;
+        
+        // 如果已经过了一半时间，进入减速阶段
+        if (elapsed > ANIMATION_DURATION / 2 && !isSlowing) {
+          console.log('进入减速阶段');
+          setIsSlowing(true);
+          
+          // 清除快速间隔
+          clearInterval(animationRef.current);
+          
+          // 开始减速阶段
+          let slowInterval = 100; // 初始间隔
+          let slowingStep = 0;
+          
+          // 定义一个命名函数，便于递归调用
+          const slowDownAnimation = () => {
+            // 增加间隔时间，减慢切换速度
+            slowInterval = 100 + (slowingStep * 30);
+            slowingStep++;
+            
+            // 选择一个随机数字显示
+            const randomIndex = Math.floor(Math.random() * availableNumbersRef.current.length);
+            const randomNumber = availableNumbersRef.current[randomIndex];
+            setCurrentNumber(randomNumber);
+            
+            // 重新计算间隔时间
+            clearInterval(animationRef.current);
+            
+            // 如果动画时间已经结束
+            if (Date.now() - startTime >= ANIMATION_DURATION) {
+              console.log('动画结束，等待API结果');
+              
+              // 停止动画
+              clearInterval(animationRef.current);
+              
+              // 等待API结果
+              apiPromise.then(response => {
+                console.log('API请求完成，结果:', response);
+                if (response && response.success) {
+                  const result = parseInt(response.result);
+                  setCurrentNumber(result);
+                  setFinalNumber(result);
+                  setLottery(response.lottery);
+                } else {
+                  setError('抽奖失败');
+                }
+              }).catch(err => {
+                console.error('API请求失败:', err);
+                setError('抽奖失败: ' + (err.message || '未知错误'));
+              }).finally(() => {
+                setAnimationRunning(false);
+                setIsSlowing(false);
+              });
+              
+              return;
+            }
+            
+            // 继续减速动画
+            animationRef.current = setInterval(slowDownAnimation, slowInterval);
+          };
+          
+          // 开始减速动画
+          animationRef.current = setInterval(slowDownAnimation, 150);
+        }
+        
+        // 检查动画是否已结束
+        if (elapsed >= ANIMATION_DURATION) {
+          clearInterval(animationRef.current);
+        }
+      }, fastInterval);
+      
+    } catch (error) {
+      console.error('动画初始化出错:', error);
+      setError('动画初始化失败: ' + (error.message || '未知错误'));
+      setAnimationRunning(false);
     }
   };
 
@@ -934,8 +1029,8 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
         {numbers.map(num => (
           <NumberCell 
             key={num}
-            active={currentNumber === num}
-            highlight={finalNumber === num || finalNumberInt === num}
+            $active={currentNumber === num}
+            $highlight={finalNumber === num || finalNumberInt === num}
           >
             {num}
           </NumberCell>
@@ -946,15 +1041,19 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
 
   // 处理取消抽奖动画
   const handleCancelAnimation = () => {
+    console.log('取消抽奖动画');
+    
     if (animationRef.current) {
-      clearTimeout(animationRef.current);
+      clearInterval(animationRef.current);
       animationRef.current = null;
     }
+    
     setAnimationRunning(false);
     setCurrentNumber(null);
     setFinalNumber(null);
     setIsSlowing(false);
-    setShowConfirmButton(false);
+    
+    console.log('动画已取消，状态已重置');
   };
 
   return (
@@ -1147,8 +1246,8 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
       
       {animationRunning && (
         <div>
-          <DrawAnimationContainer>
-            <AnimationNumber isSlowing={isSlowing}>{currentNumber}</AnimationNumber>
+          <DrawAnimationContainer $animating={true}>
+            <AnimationNumber $isSlowing={isSlowing}>{currentNumber}</AnimationNumber>
             {isSlowing && <Confetti />}
           </DrawAnimationContainer>
           <div style={{ marginTop: '1rem' }}>
@@ -1172,14 +1271,6 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
         <FinalResultContainer>
           <ResultLabel>恭喜！抽奖结果为：</ResultLabel>
           <FinalResult>{finalNumber}</FinalResult>
-          {showConfirmButton && (
-            <DrawButton 
-              onClick={handleConfirmResult}
-              style={{ marginTop: '1.5rem' }}
-            >
-              确认结果并保存
-            </DrawButton>
-          )}
         </FinalResultContainer>
       )}
       
@@ -1214,7 +1305,8 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
                   .map(num => (
                     <NumberCell 
                       key={num}
-                      highlight={
+                      $active={currentNumber === num}
+                      $highlight={
                         // 比较数字值而不是字符串，解决前导零问题
                         num === resultNumber || 
                         lottery.result === num.toString() || 

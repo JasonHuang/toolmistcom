@@ -237,6 +237,77 @@ router.post('/:id/draw', async (req, res) => {
   }
 });
 
+// 生成随机数并立即保存结果
+router.post('/:id/generateAndSave', async (req, res) => {
+  try {
+    const lottery = await Lottery.findById(req.params.id);
+    if (!lottery) {
+      return res.status(404).json({ message: '抽奖活动不存在' });
+    }
+    
+    if (!lottery.isOpen) {
+      return res.status(400).json({ message: '该抽奖活动已经结束' });
+    }
+    
+    // 设置排除的数字
+    if (req.body.excludedNumbers && Array.isArray(req.body.excludedNumbers)) {
+      // 确保所有排除的数字都是字符串类型
+      const validExcludedNumbers = req.body.excludedNumbers
+        .map(num => num.toString())
+        .filter(num => num.trim() !== '');
+      
+      lottery.excludedNumbers = validExcludedNumbers;
+    }
+    
+    // 处理自定义范围
+    let startNumber = "1";
+    let endNumber = "99";
+    
+    if (req.body.startNumber !== undefined) {
+      startNumber = req.body.startNumber.toString();
+      lottery.startNumber = startNumber;
+    }
+    
+    if (req.body.endNumber !== undefined) {
+      endNumber = req.body.endNumber.toString();
+      lottery.endNumber = endNumber;
+    }
+    
+    // 解析为整数用于生成随机结果
+    const startNum = parseInt(startNumber, 10);
+    const endNum = parseInt(endNumber, 10);
+    
+    // 生成随机结果
+    const result = generateRandomResult(lottery.excludedNumbers, startNum, endNum);
+    console.log(`生成随机结果并保存: ${result}`);
+    
+    // 更新抽奖信息
+    lottery.isOpen = false;
+    lottery.result = result;
+    
+    // 只有在有参与者的情况下才设置winner
+    if (lottery.participants && lottery.participants.length > 0) {
+      // 随机选择获胜者
+      const winnerIndex = Math.floor(Math.random() * lottery.participants.length);
+      const winner = lottery.participants[winnerIndex];
+      lottery.winner = winner.name;
+    } else {
+      // 没有参与者时，将winner设为"无参与者"
+      lottery.winner = "无参与者";
+    }
+    
+    const updatedLottery = await lottery.save();
+    res.json({ 
+      success: true, 
+      result: result,
+      lottery: updatedLottery
+    });
+  } catch (error) {
+    console.error('抽奖出错:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // 辅助函数：生成随机结果
 function generateRandomResult(excludedNumbers = [], startNum = 0, endNum = 99) {
   let result;

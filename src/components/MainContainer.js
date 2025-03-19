@@ -31,12 +31,12 @@ const Tab = styled.div`
   flex: 1;
   transition: all 0.3s ease;
   position: relative;
-  color: ${props => props.active ? '#ff4d4f' : '#666'};
-  background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.05)' : 'white'};
+  color: ${props => props.$active ? '#ff4d4f' : '#666'};
+  background-color: ${props => props.$active ? 'rgba(255, 77, 79, 0.05)' : 'white'};
   
   &:hover {
-    background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.05)' : '#f9f9f9'};
-    color: ${props => props.active ? '#ff4d4f' : '#333'};
+    background-color: ${props => props.$active ? 'rgba(255, 77, 79, 0.05)' : '#f9f9f9'};
+    color: ${props => props.$active ? '#ff4d4f' : '#333'};
   }
   
   &::after {
@@ -46,7 +46,7 @@ const Tab = styled.div`
     left: 0;
     width: 100%;
     height: 3px;
-    background: ${props => props.active ? 'linear-gradient(to right, #ff4d4f, #ff7875)' : 'transparent'};
+    background: ${props => props.$active ? 'linear-gradient(to right, #ff4d4f, #ff7875)' : 'transparent'};
     transition: all 0.3s ease;
   }
 `;
@@ -133,13 +133,13 @@ const MainContainer = ({ showDetails, defaultTab = 'create' }) => {
     <Container>
       <TabContainer>
         <Tab
-          active={activeTab === 'create'}
+          $active={activeTab === 'create'}
           onClick={() => handleTabClick('create')}
         >
           创建抽奖
         </Tab>
         <Tab
-          active={activeTab === 'list'}
+          $active={activeTab === 'list'}
           onClick={() => handleTabClick('list')}
         >
           抽奖列表
