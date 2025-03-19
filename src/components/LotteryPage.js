@@ -10,7 +10,7 @@ const PageContainer = styled.div`
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 2.5rem;
+  padding: 1.8rem;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
@@ -22,8 +22,8 @@ const PageContainer = styled.div`
 
 const Title = styled.h1`
   color: #1a1a1a;
-  margin-bottom: 0.5rem;
-  font-size: 2rem;
+  margin-bottom: 0.3rem;
+  font-size: 1.8rem;
   font-weight: 600;
   letter-spacing: -0.5px;
   position: relative;
@@ -32,10 +32,10 @@ const Title = styled.h1`
   &:after {
     content: '';
     position: absolute;
-    bottom: -0.5rem;
+    bottom: -0.4rem;
     left: 0;
-    width: 4rem;
-    height: 4px;
+    width: 3.5rem;
+    height: 3px;
     background: linear-gradient(to right, #ff4d4f, #ff7875);
     border-radius: 4px;
   }
@@ -43,23 +43,23 @@ const Title = styled.h1`
 
 const Subtitle = styled.p`
   color: #666;
-  font-size: 1.1rem;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  margin-top: 0.7rem;
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 `;
 
 const Label = styled.label`
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
   font-weight: 500;
   color: #333;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   
@@ -73,10 +73,10 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  padding: 0.8rem 1rem;
+  padding: 0.6rem 0.8rem;
   border: 1px solid #d9d9d9;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
   
   &:focus {
@@ -95,11 +95,11 @@ const Input = styled.input`
 `;
 
 const TextArea = styled.textarea`
-  padding: 0.8rem 1rem;
+  padding: 0.6rem 0.8rem;
   border: 1px solid #d9d9d9;
-  border-radius: 8px;
-  font-size: 1rem;
-  min-height: 100px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  min-height: 80px;
   resize: vertical;
   transition: all 0.3s ease;
   
@@ -124,9 +124,9 @@ const Button = styled.button`
     'white'};
   color: ${props => props.primary ? 'white' : '#666'};
   border: ${props => props.primary ? 'none' : '1px solid #d9d9d9'};
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -156,7 +156,7 @@ const Button = styled.button`
   }
   
   &:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: ${props => props.primary ? 
       '0 6px 16px rgba(255, 77, 79, 0.4)' : 
       '0 4px 12px rgba(0, 0, 0, 0.1)'};
@@ -188,12 +188,12 @@ const Button = styled.button`
 
 const ErrorMessage = styled.div`
   color: #ff4d4f;
-  font-size: 0.95rem;
-  margin-top: 0.8rem;
-  padding: 0.8rem;
+  font-size: 0.9rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem;
   background-color: #fff1f0;
   border: 1px solid #ffa39e;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   
@@ -202,8 +202,8 @@ const ErrorMessage = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     background-color: #ff4d4f;
     color: white;
     border-radius: 50%;
@@ -215,12 +215,12 @@ const ErrorMessage = styled.div`
 
 const SuccessMessage = styled.div`
   color: #52c41a;
-  font-size: 0.95rem;
-  margin-top: 0.8rem;
-  padding: 0.8rem;
+  font-size: 0.9rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem;
   background-color: #f6ffed;
   border: 1px solid #b7eb8f;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   
@@ -229,8 +229,8 @@ const SuccessMessage = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     background-color: #52c41a;
     color: white;
     border-radius: 50%;
@@ -242,27 +242,27 @@ const SuccessMessage = styled.div`
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
 `;
 
 const CheckboxContainer = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   cursor: pointer;
 `;
 
 const Checkbox = styled.input`
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
   cursor: pointer;
   accent-color: #ff4d4f;
 `;
 
 const CheckboxLabel = styled.label`
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #333;
   cursor: pointer;
   user-select: none;
@@ -277,17 +277,17 @@ const CheckboxLabel = styled.label`
 // 添加日期选择按钮样式
 const DateButtonGroup = styled.div`
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
   flex-wrap: wrap;
 `;
 
 const DateButton = styled.button`
-  padding: 0.5rem 0.8rem;
+  padding: 0.4rem 0.6rem;
   border: 1px solid #d9d9d9;
   border-radius: 6px;
   background-color: white;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
   
@@ -304,12 +304,12 @@ const DateButton = styled.button`
 // 添加一个用于并排字段的容器
 const FormRow = styled.div`
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
   
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 `;
 
@@ -317,6 +317,26 @@ const FormColumn = styled.div`
   display: flex;
   flex-direction: column;
   flex: ${props => props.flex || '1'};
+`;
+
+// 添加四列布局组件
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  @media (max-width: 767px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 // 设置默认表单数据
@@ -498,41 +518,6 @@ const LotteryPage = () => {
         <Subtitle>填写表单创建一个新的抽奖活动</Subtitle>
       </div>
       
-      <CheckboxContainer style={{ marginBottom: '2rem', marginTop: '0.5rem' }}>
-        <Checkbox 
-          type="checkbox" 
-          id="isImmediateDraw"
-          name="isImmediateDraw"
-          checked={formData.isImmediateDraw}
-          onChange={(e) => {
-            const { name, checked } = e.target;
-            // 如果选中了立即开奖，设置抽奖日期为当前日期
-            if (checked) {
-              const today = new Date();
-              // 使用本地日期格式避免时区问题
-              const year = today.getFullYear();
-              const month = String(today.getMonth() + 1).padStart(2, '0');
-              const day = String(today.getDate()).padStart(2, '0');
-              const formattedDate = `${year}-${month}-${day}`;
-              
-              setFormData(prev => ({
-                ...prev,
-                [name]: checked,
-                drawDate: formattedDate
-              }));
-            } else {
-              setFormData(prev => ({
-                ...prev,
-                [name]: checked
-              }));
-            }
-          }}
-        />
-        <CheckboxLabel htmlFor="isImmediateDraw">
-          创建后立即开奖（无需等待参与者）
-        </CheckboxLabel>
-      </CheckboxContainer>
-      
       <form onSubmit={handleSubmit}>
         <FormGroup>
           <Label required>抽奖标题</Label>
@@ -545,19 +530,19 @@ const LotteryPage = () => {
           />
         </FormGroup>
         
-        <FormGroup>
-          <Label required>奖品</Label>
-          <Input
-            type="text"
-            name="prize"
-            value={formData.prize}
-            onChange={handleInputChange}
-            placeholder="例如：iPhone 15 Pro"
-          />
-        </FormGroup>
-        
-        <FormRow>
-          <FormColumn flex="0.4">
+        <FormGrid>
+          <FormGroup>
+            <Label required>奖品</Label>
+            <Input
+              type="text"
+              name="prize"
+              value={formData.prize}
+              onChange={handleInputChange}
+              placeholder="例如：iPhone 15 Pro"
+            />
+          </FormGroup>
+          
+          <FormGroup>
             <Label required>最大参与人数</Label>
             <Input
               type="number"
@@ -566,9 +551,45 @@ const LotteryPage = () => {
               onChange={handleInputChange}
               min="1"
             />
-          </FormColumn>
+          </FormGroup>
           
-          <FormColumn flex="0.6">
+          <FormGroup>
+            <Label>起始数字</Label>
+            <Input
+              type="number"
+              name="startNumber"
+              value={formData.startNumber}
+              onChange={handleInputChange}
+              min="0"
+              max="98"
+              disabled={!formData.customRangeEnabled}
+              style={{
+                backgroundColor: !formData.customRangeEnabled ? '#f5f5f5' : 'white',
+                cursor: !formData.customRangeEnabled ? 'not-allowed' : 'pointer'
+              }}
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label>结束数字</Label>
+            <Input
+              type="number"
+              name="endNumber"
+              value={formData.endNumber}
+              onChange={handleInputChange}
+              min="1"
+              max="99"
+              disabled={!formData.customRangeEnabled}
+              style={{
+                backgroundColor: !formData.customRangeEnabled ? '#f5f5f5' : 'white',
+                cursor: !formData.customRangeEnabled ? 'not-allowed' : 'pointer'
+              }}
+            />
+          </FormGroup>
+        </FormGrid>
+        
+        <FormRow>
+          <FormColumn>
             <Label required>开奖日期</Label>
             <Input
               type="date"
@@ -609,15 +630,81 @@ const LotteryPage = () => {
                 </DateButton>
               </DateButtonGroup>
             )}
-            {formData.isImmediateDraw && (
-              <div style={{ 
-                fontSize: '0.9rem', 
-                color: '#999', 
-                marginTop: '0.5rem' 
-              }}>
-                立即开奖模式下，开奖日期已自动设置为今天
-              </div>
-            )}
+          </FormColumn>
+          
+          <FormColumn>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <CheckboxContainer style={{ marginBottom: '0' }}>
+                <Checkbox 
+                  type="checkbox" 
+                  id="isImmediateDraw"
+                  name="isImmediateDraw"
+                  checked={formData.isImmediateDraw}
+                  onChange={(e) => {
+                    const { name, checked } = e.target;
+                    if (checked) {
+                      const today = new Date();
+                      const year = today.getFullYear();
+                      const month = String(today.getMonth() + 1).padStart(2, '0');
+                      const day = String(today.getDate()).padStart(2, '0');
+                      const formattedDate = `${year}-${month}-${day}`;
+                      
+                      setFormData(prev => ({
+                        ...prev,
+                        [name]: checked,
+                        drawDate: formattedDate
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        [name]: checked
+                      }));
+                    }
+                  }}
+                />
+                <CheckboxLabel htmlFor="isImmediateDraw">
+                  创建后立即开奖
+                </CheckboxLabel>
+              </CheckboxContainer>
+              
+              <CheckboxContainer style={{ marginBottom: '0' }}>
+                <Checkbox 
+                  type="checkbox" 
+                  id="customRangeEnabled"
+                  name="customRangeEnabled"
+                  checked={formData.customRangeEnabled}
+                  onChange={(e) => {
+                    const { name, checked } = e.target;
+                    setFormData(prev => ({
+                      ...prev,
+                      [name]: checked
+                    }));
+                  }}
+                />
+                <CheckboxLabel htmlFor="customRangeEnabled">
+                  自定义抽奖号码范围
+                </CheckboxLabel>
+              </CheckboxContainer>
+              
+              {formData.isImmediateDraw && (
+                <div style={{ 
+                  fontSize: '0.85rem', 
+                  color: '#999',
+                  marginTop: '0.2rem' 
+                }}>
+                  立即开奖模式下，开奖日期设为今天
+                </div>
+              )}
+              
+              {!formData.customRangeEnabled && (
+                <div style={{ 
+                  fontSize: '0.85rem', 
+                  color: '#999'
+                }}>
+                  默认抽奖范围：1-99
+                </div>
+              )}
+            </div>
           </FormColumn>
         </FormRow>
         
@@ -629,65 +716,6 @@ const LotteryPage = () => {
             onChange={handleInputChange}
             placeholder="请输入抽奖活动的详细说明..."
           />
-        </FormGroup>
-        
-        <FormGroup>
-          <CheckboxContainer>
-            <Checkbox 
-              type="checkbox" 
-              id="customRangeEnabled"
-              name="customRangeEnabled"
-              checked={formData.customRangeEnabled}
-              onChange={(e) => {
-                const { name, checked } = e.target;
-                setFormData(prev => ({
-                  ...prev,
-                  [name]: checked
-                }));
-              }}
-            />
-            <CheckboxLabel htmlFor="customRangeEnabled">
-              自定义抽奖号码范围
-            </CheckboxLabel>
-          </CheckboxContainer>
-          
-          {formData.customRangeEnabled && (
-            <FormRow style={{ marginTop: '1rem' }}>
-              <FormColumn>
-                <Label>起始数字</Label>
-                <Input
-                  type="number"
-                  name="startNumber"
-                  value={formData.startNumber}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="98"
-                />
-              </FormColumn>
-              
-              <FormColumn>
-                <Label>结束数字</Label>
-                <Input
-                  type="number"
-                  name="endNumber"
-                  value={formData.endNumber}
-                  onChange={handleInputChange}
-                  min="1"
-                  max="99"
-                />
-              </FormColumn>
-            </FormRow>
-          )}
-          
-          {!formData.customRangeEnabled && (
-            <div style={{ 
-              fontSize: '0.9rem', 
-              color: '#999', 
-              marginTop: '0.5rem' 
-            }}>
-              默认抽奖范围：1-99
-            </div>
-          )}
         </FormGroup>
         
         {error && <ErrorMessage>{error}</ErrorMessage>}

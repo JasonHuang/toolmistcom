@@ -91,8 +91,10 @@ const MainContainer = ({ showDetails }) => {
   };
   
   const handleBack = () => {
+    // 先设置selectedRecord为null，再更新URL，避免闪烁
     setSelectedRecord(null);
-    navigate('/lottery');
+    // 使用replace而不是push，避免历史堆栈问题
+    navigate('/lottery', { replace: true });
   };
   
   return (

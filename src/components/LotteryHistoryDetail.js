@@ -655,7 +655,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
   useEffect(() => {
     return () => {
       if (animationRef.current) {
-        clearInterval(animationRef.current);
+        clearTimeout(animationRef.current);
       }
     };
   }, []);
@@ -680,7 +680,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
             onBack();
           } else {
             // 如果是通过路由渲染的，使用navigate返回
-            navigate('/lottery');
+            navigate('/lottery', { replace: true });
           }
         }}>返回列表</BackButton>
       </DetailContainer>
@@ -698,7 +698,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
             onBack();
           } else {
             // 如果是通过路由渲染的，使用navigate返回
-            navigate('/lottery');
+            navigate('/lottery', { replace: true });
           }
         }}>返回列表</BackButton>
       </DetailContainer>
@@ -756,95 +756,119 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
 
   // 处理抽奖动画
   const handleDrawAnimation = () => {
-    if (animationRunning) return;
-    
-    // 验证抽奖范围
-    if (startNumber >= endNumber) {
-      setError('起始数字必须小于结束数字');
-      return;
-    }
-
-    if (startNumber < 0 || endNumber > 99) {
-      setError('抽奖范围必须在0-99之间');
+    if (!lottery.isOpen) {
+      setError('该抽奖活动已经结束');
       return;
     }
     
-    const availableNumbers = generateAvailableNumbers();
-    if (availableNumbers.length === 0) {
-      setError('排除的数字太多，没有可选的数字了');
+    if (animationRunning) {
       return;
     }
     
-    availableNumbersRef.current = availableNumbers;
+    // 重置状态
     setAnimationRunning(true);
+    setCurrentNumber(null);
     setFinalNumber(null);
+    setIsSlowing(false);
+    setShowConfirmButton(false);
+    setError('');
     
-    let count = 0;
-    const totalIterations = 60; // 总迭代次数
-    const accelerationPhase = 15; // 加速阶段
-    const steadyPhase = 25; // 匀速阶段
+    // 获取可用数字
+    const availableNumbers = generateAvailableNumbers();
+    availableNumbersRef.current = availableNumbers;
     
-    // 清除之前的动画
-    if (animationRef.current) {
-      clearInterval(animationRef.current);
+    if (availableNumbers.length === 0) {
+      setError('没有可用的抽奖号码');
+      setAnimationRunning(false);
+      return;
     }
     
-    // 创建一个可以递归调用的函数
-    const animateDrawing = (interval = 200) => {
-      count++;
+    // 随机选择一个结果
+    const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+    const result = availableNumbers[randomIndex];
+    console.log('预选的随机结果:', result);
+    
+    // 定义动画阶段
+    const TOTAL_ANIMATION_TIME = 5000; // 总动画时间5秒
+    const FAST_PHASE = 2500;           // 快速阶段2.5秒
+    const SLOWING_PHASE = 2500;        // 减速阶段2.5秒
+    
+    const startTime = Date.now();      // 动画开始时间
+    let animationFrame = null;         // 存储动画帧ID
+    
+    // 更新动画的递归函数
+    const updateAnimation = () => {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - startTime;
       
-      // 获取随机数
-      const randomIndex = Math.floor(Math.random() * availableNumbersRef.current.length);
-      const number = availableNumbersRef.current[randomIndex];
-      setCurrentNumber(number);
-      
-      // 计算动画间隔 (加速到减速)
-      let nextInterval;
-      
-      if (count < accelerationPhase) {
-        // 加速阶段: 从500ms到50ms，使用指数函数使加速更自然
-        const progress = count / accelerationPhase;
-        nextInterval = 500 - (450 * Math.pow(progress, 2));
-        setIsSlowing(false);
-      } else if (count < accelerationPhase + steadyPhase) {
-        // 匀速阶段: 50ms
-        nextInterval = 50;
-        setIsSlowing(false);
-      } else {
-        // 减速阶段: 从50ms到800ms，使用指数函数使减速更自然
-        const deceleration = (count - accelerationPhase - steadyPhase) / (totalIterations - accelerationPhase - steadyPhase);
-        nextInterval = 50 + (750 * Math.pow(deceleration, 0.5));
-        setIsSlowing(true); // 进入减速阶段，触发脉动动画
-      }
-      
-      // 结束动画
-      if (count >= totalIterations) {
-        clearInterval(animationRef.current);
-        animationRef.current = null;
-        
-        // 生成随机最终数字
-        const finalIndex = Math.floor(Math.random() * availableNumbersRef.current.length);
-        const finalNum = availableNumbersRef.current[finalIndex];
-        
-        setFinalNumber(finalNum);
-        setCurrentNumber(finalNum);
+      // 如果动画已经运行完预设时间，停止
+      if (elapsedTime >= TOTAL_ANIMATION_TIME) {
+        // 显示最终结果
+        setCurrentNumber(result);
+        setFinalNumber(result);
         setAnimationRunning(false);
-        setShowConfirmButton(true); // 显示确认按钮而不是自动调用API
-      } else {
-        // 更新动画间隔
-        clearInterval(animationRef.current);
-        animationRef.current = setInterval(() => animateDrawing(nextInterval), nextInterval);
+        setShowConfirmButton(true);
+        return;
       }
+      
+      // 进入减速阶段
+      if (elapsedTime > FAST_PHASE && !isSlowing) {
+        setIsSlowing(true);
+      }
+      
+      // 根据时间计算动画间隔
+      let nextDelay;
+      if (elapsedTime <= FAST_PHASE) {
+        // 快速阶段：固定间隔100ms
+        nextDelay = 100;
+      } else {
+        // 减速阶段：间隔从100ms逐渐增加到500ms
+        const slowingProgress = (elapsedTime - FAST_PHASE) / SLOWING_PHASE;
+        nextDelay = 100 + Math.floor(400 * slowingProgress);
+      }
+      
+      // 随机选择一个数字显示
+      // 在接近结束时，逐渐增加显示结果的概率
+      let nextNumber;
+      const showResultProb = Math.min(1, (elapsedTime - FAST_PHASE) / SLOWING_PHASE);
+      
+      if (Math.random() < showResultProb && elapsedTime > FAST_PHASE + SLOWING_PHASE * 0.6) {
+        // 增加最终结果出现的概率
+        nextNumber = result;
+      } else {
+        // 随机选择一个非结果数字
+        do {
+          const randomIdx = Math.floor(Math.random() * availableNumbersRef.current.length);
+          nextNumber = availableNumbersRef.current[randomIdx];
+        } while (nextNumber === result && availableNumbersRef.current.length > 1);
+      }
+      
+      setCurrentNumber(nextNumber);
+      
+      // 使用setTimeout安排下一次更新
+      animationRef.current = setTimeout(updateAnimation, nextDelay);
     };
     
-    // 启动动画
-    animationRef.current = setInterval(() => animateDrawing(), 500); // 初始间隔
+    // 开始动画循环
+    updateAnimation();
   };
-
-  // 确认抽奖结果
-  const handleConfirmResult = () => {
-    if (finalNumber !== null) {
-      handleDraw(finalNumber);
+  
+  // 处理确认结果
+  const handleConfirmResult = async () => {
+    if (!finalNumber) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      // 将结果格式化为两位数，与后端格式保持一致
+      const formattedResult = finalNumber.toString().padStart(2, '0');
+      await handleDraw(formattedResult);
+    } catch (error) {
+      console.error('确认结果失败:', error);
+      setError(error.message || '确认结果失败');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -902,19 +926,35 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
       }
     }
     
+    // 转换finalNumber为数字，便于比较
+    const finalNumberInt = finalNumber !== null ? parseInt(finalNumber) : null;
+    
     return (
       <NumberGrid>
         {numbers.map(num => (
           <NumberCell 
             key={num}
             active={currentNumber === num}
-            highlight={finalNumber === num}
+            highlight={finalNumber === num || finalNumberInt === num}
           >
             {num}
           </NumberCell>
         ))}
       </NumberGrid>
     );
+  };
+
+  // 处理取消抽奖动画
+  const handleCancelAnimation = () => {
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+      animationRef.current = null;
+    }
+    setAnimationRunning(false);
+    setCurrentNumber(null);
+    setFinalNumber(null);
+    setIsSlowing(false);
+    setShowConfirmButton(false);
   };
 
   return (
@@ -931,7 +971,7 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
           onBack();
         } else {
           // 如果是通过路由渲染的，使用navigate返回
-          navigate('/lottery');
+          navigate('/lottery', { replace: true });
         }
       }}>返回列表</BackButton>
       
@@ -1114,6 +1154,17 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
           <div style={{ marginTop: '1rem' }}>
             {renderNumberGrid()}
           </div>
+          <DrawButton 
+            onClick={handleCancelAnimation}
+            style={{ 
+              marginTop: '1rem',
+              backgroundColor: '#f5f5f5', 
+              color: '#333',
+              border: '1px solid #d9d9d9' 
+            }}
+          >
+            取消抽奖
+          </DrawButton>
         </div>
       )}
       
@@ -1146,6 +1197,9 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
                 const minNum = parseInt(lottery.startNumber) || 1;
                 const maxNum = parseInt(lottery.endNumber) || 99;
                 
+                // 将结果转换为数字，以便正确比较
+                const resultNumber = parseInt(lottery.result);
+                
                 // 生成指定范围内的数字
                 return Array.from(
                   { length: maxNum - minNum + 1 }, 
@@ -1160,7 +1214,12 @@ const LotteryHistoryDetail = ({ record: propRecord, onBack }) => {
                   .map(num => (
                     <NumberCell 
                       key={num}
-                      highlight={lottery.result === num.toString() || lottery.result === String(num)}
+                      highlight={
+                        // 比较数字值而不是字符串，解决前导零问题
+                        num === resultNumber || 
+                        lottery.result === num.toString() || 
+                        lottery.result === String(num)
+                      }
                     >
                       {num}
                     </NumberCell>
