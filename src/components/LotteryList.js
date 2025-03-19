@@ -389,6 +389,81 @@ const ModalButton = styled.button`
   }
 `;
 
+// 添加图片预览模态窗口样式
+const ImagePreviewModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: zoom-out;
+  
+  img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border: 2px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.1);
+    }
+  }
+`;
+
+const PrizeImage = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const PrizeImagePlaceholder = styled.div`
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  color: #bbb;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+`;
+
 // 格式化日期显示
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -412,6 +487,7 @@ const LotteryList = ({ onRecordSelect }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(null); // 存储要删除的抽奖ID
   const [deleteLoading, setDeleteLoading] = useState(false);
   const itemsPerPage = 10;
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     const fetchLotteries = async () => {
@@ -494,6 +570,15 @@ const LotteryList = ({ onRecordSelect }) => {
 
   const handleCancelDelete = () => {
     setDeleteConfirm(null);
+  };
+
+  const handleImageClick = (imageUrl, e) => {
+    e.stopPropagation(); // 防止触发行点击事件
+    setPreviewImage(imageUrl);
+  };
+
+  const closeImagePreview = () => {
+    setPreviewImage(null);
   };
 
   // 计算分页
@@ -588,7 +673,7 @@ const LotteryList = ({ onRecordSelect }) => {
                 <TableHeader>奖品</TableHeader>
                 <TableHeader>状态</TableHeader>
                 <TableHeader>参与人数</TableHeader>
-                <TableHeader>获奖者</TableHeader>
+                <TableHeader>中奖号码</TableHeader>
                 <TableHeader>操作</TableHeader>
               </tr>
             </thead>
@@ -598,7 +683,20 @@ const LotteryList = ({ onRecordSelect }) => {
                   <TableCell>{record.title}</TableCell>
                   <TableCell>{formatDate(record.createdAt)}</TableCell>
                   <TableCell>{formatDate(record.drawDate)}</TableCell>
-                  <TableCell>{record.prize}</TableCell>
+                  <TableCell>
+                    {record.prizeImage ? (
+                      <PrizeImage 
+                        src={record.prizeImage} 
+                        alt={record.prize} 
+                        onClick={(e) => handleImageClick(record.prizeImage, e)}
+                        title={record.prize}
+                      />
+                    ) : (
+                      <PrizeImagePlaceholder title={record.prize}>
+                        无图片
+                      </PrizeImagePlaceholder>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge isOpen={record.isOpen}>
                       {record.isOpen ? '进行中' : '已结束'}
@@ -607,7 +705,7 @@ const LotteryList = ({ onRecordSelect }) => {
                   <TableCell>
                     {record.participants ? record.participants.length : 0}/{record.maxParticipants}
                   </TableCell>
-                  <TableCell>{record.winner || '-'}</TableCell>
+                  <TableCell>{record.result || '-'}</TableCell>
                   <TableCell>
                     <ButtonGroup>
                       <ViewButton onClick={() => handleViewDetails(record)}>
@@ -668,6 +766,18 @@ const LotteryList = ({ onRecordSelect }) => {
             </ModalButtons>
           </ModalContent>
         </ConfirmModal>
+      )}
+      
+      {previewImage && (
+        <ImagePreviewModal onClick={closeImagePreview}>
+          <img src={previewImage} alt="奖品预览" />
+          <button 
+            className="close-btn"
+            onClick={closeImagePreview}
+          >
+            ×
+          </button>
+        </ImagePreviewModal>
       )}
     </ListContainer>
   );

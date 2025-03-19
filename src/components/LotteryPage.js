@@ -322,6 +322,29 @@ const ButtonGroup = styled.div`
   margin-top: 0.8rem;
 `;
 
+const DateButtonGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+`;
+
+const DateButton = styled.button`
+  background: white;
+  color: #666;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+  }
+`;
+
 const CheckboxContainer = styled.div`
   display: flex;
   align-items: center;
@@ -355,7 +378,7 @@ const ImageUploader = styled.div`
   border: 1px dashed #d9d9d9;
   border-radius: 8px;
   background-color: #fafafa;
-  width: 100%;
+  width: 300px;
   height: 120px;
   display: flex;
   flex-direction: column;
@@ -414,11 +437,34 @@ const ImagePreview = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   img {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
     object-fit: contain;
+  }
+  
+  .preview-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
   }
   
   .remove-btn {
@@ -440,8 +486,55 @@ const ImagePreview = styled.div`
     transition: opacity 0.3s;
   }
   
-  &:hover .remove-btn {
+  &:hover .remove-btn,
+  &:hover .preview-btn {
     opacity: 1;
+  }
+`;
+
+// 添加图片预览模态窗口样式
+const ImagePreviewModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: ${props => props.isOpen ? 'flex' : 'none'};
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: zoom-out;
+  
+  img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border: 2px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.1);
+    }
   }
 `;
 
@@ -483,6 +576,7 @@ const LotteryPage = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   
   // 标签页状态
@@ -639,7 +733,14 @@ const LotteryPage = () => {
     // 创建预览
     const reader = new FileReader();
     reader.onload = (e) => {
-      setImagePreview(e.target.result);
+      const result = e.target.result;
+      setImagePreview(result);
+      
+      // 立即更新formData中的prizeImage，而不是等待模拟上传完成
+      setFormData(prev => ({
+        ...prev,
+        prizeImage: result
+      }));
     };
     reader.readAsDataURL(file);
     
@@ -664,17 +765,9 @@ const LotteryPage = () => {
       }, 300);
       
       // 在实际项目中，这里应该调用真实的上传API
-      // 暂时模拟上传结果
       setTimeout(() => {
         clearInterval(progressInterval);
         setUploadProgress(100);
-        
-        // 更新formData中的图片URL (使用预览图代替实际上传)
-        setFormData(prev => ({
-          ...prev,
-          prizeImage: imagePreview
-        }));
-        
         setIsUploading(false);
       }, 2000);
       
@@ -713,7 +806,14 @@ const LotteryPage = () => {
         </TabButton>
       </TabsNav>
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => {
+        // 只有在高级选项页面且点击提交按钮时才处理表单提交
+        if (activeTab !== 'advanced') {
+          e.preventDefault();
+          return false;
+        }
+        handleSubmit(e);
+      }}>
         <FormContainer>
           {/* 基本信息选项卡 */}
           {activeTab === 'basic' && (
@@ -757,42 +857,53 @@ const LotteryPage = () => {
               
               <FormGroup>
                 <Label>奖品图片</Label>
-                <ImageUploader onClick={() => fileInputRef.current && fileInputRef.current.click()}>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                  />
-                  
-                  {!imagePreview ? (
-                    <>
-                      <AddIcon />
-                      <UploadText>点击上传图片</UploadText>
-                    </>
-                  ) : (
-                    <ImagePreview>
-                      <img src={imagePreview} alt="奖品预览" />
-                      <button 
-                        className="remove-btn" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setImageFile(null);
-                          setImagePreview('');
-                          setUploadProgress(0);
-                          setIsUploading(false);
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = '';
-                          }
-                        }}
-                      >
-                        ×
-                      </button>
-                    </ImagePreview>
-                  )}
-                  
-                  {isUploading && <UploadProgress progress={uploadProgress} />}
-                </ImageUploader>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <ImageUploader onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                    />
+                    
+                    {!imagePreview ? (
+                      <>
+                        <AddIcon />
+                        <UploadText>点击上传图片</UploadText>
+                      </>
+                    ) : (
+                      <ImagePreview>
+                        <img src={imagePreview} alt="奖品预览" />
+                        <button 
+                          className="remove-btn" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImageFile(null);
+                            setImagePreview('');
+                            setUploadProgress(0);
+                            setIsUploading(false);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
+                            }
+                          }}
+                        >
+                          ×
+                        </button>
+                        <button 
+                          className="preview-btn" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewModalOpen(true);
+                          }}
+                        >
+                          查看大图
+                        </button>
+                      </ImagePreview>
+                    )}
+                    
+                    {isUploading && <UploadProgress progress={uploadProgress} />}
+                  </ImageUploader>
+                </div>
                 <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#999' }}>
                   上传奖品图片，将在抽奖详情中显示
                 </div>
@@ -883,6 +994,60 @@ const LotteryPage = () => {
                     onChange={handleInputChange}
                     min={formData.startDate}
                   />
+                  <DateButtonGroup>
+                    <DateButton 
+                      type="button" 
+                      onClick={() => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        setFormData(prev => ({
+                          ...prev,
+                          drawDate: today.toISOString().split('T')[0]
+                        }));
+                      }}
+                    >
+                      今天开奖
+                    </DateButton>
+                    <DateButton 
+                      type="button" 
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 7);
+                        setFormData(prev => ({
+                          ...prev,
+                          drawDate: date.toISOString().split('T')[0]
+                        }));
+                      }}
+                    >
+                      7天后
+                    </DateButton>
+                    <DateButton 
+                      type="button" 
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 15);
+                        setFormData(prev => ({
+                          ...prev,
+                          drawDate: date.toISOString().split('T')[0]
+                        }));
+                      }}
+                    >
+                      15天后
+                    </DateButton>
+                    <DateButton 
+                      type="button" 
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + 30);
+                        setFormData(prev => ({
+                          ...prev,
+                          drawDate: date.toISOString().split('T')[0]
+                        }));
+                      }}
+                    >
+                      30天后
+                    </DateButton>
+                  </DateButtonGroup>
                 </FormGroup>
               )}
             </>
@@ -1014,7 +1179,10 @@ const LotteryPage = () => {
                 <Button 
                   type="button" 
                   primary
-                  onClick={() => setActiveTab(activeTab === 'basic' ? 'settings' : 'advanced')}
+                  onClick={(e) => {
+                    e.preventDefault(); // 防止事件冒泡
+                    setActiveTab(activeTab === 'basic' ? 'settings' : 'advanced');
+                  }}
                 >
                   下一步
                 </Button>
@@ -1022,15 +1190,30 @@ const LotteryPage = () => {
                 <Button 
                   type="submit" 
                   primary
-                  disabled={loading}
+                  disabled={loading || isUploading}
                 >
-                  {loading ? '创建中...' : '提交创建'}
+                  {loading ? '创建中...' : (isUploading ? '等待图片上传...' : '提交创建')}
                 </Button>
               )}
             </div>
           </div>
         </FormContainer>
       </form>
+      
+      {/* 图片预览模态窗口 */}
+      <ImagePreviewModal 
+        isOpen={previewModalOpen}
+        onClick={() => setPreviewModalOpen(false)}
+      >
+        {imagePreview && <img src={imagePreview} alt="奖品大图预览" />}
+        <button 
+          className="close-btn"
+          onClick={() => setPreviewModalOpen(false)}
+        >
+          ×
+        </button>
+      </ImagePreviewModal>
+      
     </PageContainer>
   );
 };
