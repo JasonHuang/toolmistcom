@@ -1,102 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useParams, useNavigate } from 'react-router-dom';
 import LotteryPage from './LotteryPage';
-import LotteryHistory from './LotteryHistory';
+import LotteryList from './LotteryList';
 import LotteryHistoryDetail from './LotteryHistoryDetail';
+import { lotteryAPI } from '../services/api';
 
 const Container = styled.div`
   width: 100%;
-  min-height: 100vh;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
-  position: relative;
-  background-color: #f5f5f5;
+  gap: 2rem;
 `;
 
 const TabContainer = styled.div`
-  width: 100%;
   display: flex;
-  justify-content: center;
   background-color: white;
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: -32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 1rem;
 `;
 
 const Tab = styled.div`
-  padding: 15px 30px;
+  padding: 1rem 2rem;
   cursor: pointer;
-  font-size: 16px;
-  color: ${props => props.active ? '#1890ff' : '#666'};
-  border-bottom: 2px solid ${props => props.active ? '#1890ff' : 'transparent'};
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
   transition: all 0.3s ease;
-  margin: 0 10px;
-
+  position: relative;
+  color: ${props => props.active ? '#ff4d4f' : '#666'};
+  background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.05)' : 'white'};
+  
   &:hover {
-    color: #1890ff;
+    background-color: ${props => props.active ? 'rgba(255, 77, 79, 0.05)' : '#f9f9f9'};
+    color: ${props => props.active ? '#ff4d4f' : '#333'};
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: ${props => props.active ? 'linear-gradient(to right, #ff4d4f, #ff7875)' : 'transparent'};
+    transition: all 0.3s ease;
   }
 `;
 
-const ContentContainer = styled.div`
-  width: 100%;
-  flex: 1;
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  padding: 20px 0;
-`;
-
-const MainContainer = () => {
-  const [activeTab, setActiveTab] = useState('current');
+const MainContainer = ({ showDetails }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('create');
   const [selectedRecord, setSelectedRecord] = useState(null);
-
+  
+  // 检查是否需要显示详情页（从URL参数或传入属性）
+  useEffect(() => {
+    if (showDetails && id) {
+      setActiveTab('list');
+      if (!selectedRecord || selectedRecord._id !== id) {
+        // 从API获取抽奖记录
+        lotteryAPI.getLotteryById(id)
+          .then(data => {
+            setSelectedRecord(data);
+          })
+          .catch(err => {
+            console.error('获取抽奖详情失败:', err);
+          });
+      }
+    }
+  }, [showDetails, id, selectedRecord]);
+  
+  const handleTabClick = (tabName) => {
+    setActiveTab(tabName);
+    setSelectedRecord(null); // 切换标签时重置详情视图
+    
+    // 如果切换到非详情页，更新URL
+    if (id) {
+      navigate('/lottery');
+    }
+  };
+  
   const handleRecordSelect = (record) => {
     setSelectedRecord(record);
+    // 更新URL以反映选择的记录
+    navigate(`/lottery/${record._id}`);
   };
-
+  
   const handleBack = () => {
     setSelectedRecord(null);
+    navigate('/lottery');
   };
-
+  
   return (
     <Container>
       <TabContainer>
-        <Tab 
-          active={activeTab === 'current'} 
-          onClick={() => {
-            setActiveTab('current');
-            setSelectedRecord(null);
-          }}
+        <Tab
+          active={activeTab === 'create'}
+          onClick={() => handleTabClick('create')}
         >
-          当前抽奖
+          创建抽奖
         </Tab>
-        <Tab 
-          active={activeTab === 'history'} 
-          onClick={() => {
-            setActiveTab('history');
-            setSelectedRecord(null);
-          }}
+        <Tab
+          active={activeTab === 'list'}
+          onClick={() => handleTabClick('list')}
         >
-          历届抽奖
+          抽奖列表
         </Tab>
       </TabContainer>
-      <ContentContainer>
-        {activeTab === 'current' && <LotteryPage />}
-        {activeTab === 'history' && !selectedRecord && (
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <LotteryHistory onRecordSelect={handleRecordSelect} />
-          </div>
-        )}
-        {activeTab === 'history' && selectedRecord && (
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <LotteryHistoryDetail record={selectedRecord} onBack={handleBack} />
-          </div>
-        )}
-      </ContentContainer>
+      
+      {activeTab === 'create' && !selectedRecord && <LotteryPage />}
+      
+      {activeTab === 'list' && !selectedRecord && (
+        <LotteryList onRecordSelect={handleRecordSelect} />
+      )}
+      
+      {selectedRecord && (
+        <LotteryHistoryDetail record={selectedRecord} onBack={handleBack} />
+      )}
     </Container>
   );
 };

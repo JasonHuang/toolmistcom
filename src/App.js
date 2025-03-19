@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { createGlobalStyle } from 'styled-components';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainContainer from './components/MainContainer';
 
 const GlobalStyle = createGlobalStyle`
@@ -160,23 +161,27 @@ const Copyright = styled.p`
 
 function App() {
   return (
-    <>
+    <Router>
       <GlobalStyle />
       <AppContainer>
         <Header>
           <HeaderContent>
             <Logo>幸运抽奖系统</Logo>
             <Nav>
-              <NavLink href="#">首页</NavLink>
-              <NavLink href="#">抽奖活动</NavLink>
-              <NavLink href="#">历史记录</NavLink>
-              <NavLink href="#">关于我们</NavLink>
+              <NavLink href="/">首页</NavLink>
+              <NavLink href="/lottery">抽奖活动</NavLink>
+              <NavLink href="/history">历史记录</NavLink>
+              <NavLink href="/about">关于我们</NavLink>
             </Nav>
           </HeaderContent>
         </Header>
         
         <Main>
-          <MainContainer />
+          <Routes>
+            <Route path="/" element={<MainContainer />} />
+            <Route path="/lottery" element={<MainContainer />} />
+            <Route path="/lottery/:id" element={<MainContainer showDetails={true} />} />
+          </Routes>
         </Main>
         
         <Footer>
@@ -191,7 +196,7 @@ function App() {
           </FooterContent>
         </Footer>
       </AppContainer>
-    </>
+    </Router>
   );
 }
 

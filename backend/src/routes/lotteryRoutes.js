@@ -44,11 +44,56 @@ router.get('/:id', async (req, res) => {
 
 // 创建新的抽奖活动
 router.post('/', async (req, res) => {
-  const lottery = new Lottery(req.body);
   try {
-    const newLottery = await lottery.save();
-    res.status(201).json(newLottery);
+    console.log('Received lottery creation request:', req.body);
+
+    // 验证日期格式
+    const { startDate, endDate, drawDate } = req.body;
+    
+    // 尝试解析日期
+    const parseDate = (dateStr) => {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      return date.toISOString().split('T')[0];
+    };
+
+    const formattedStartDate = parseDate(startDate);
+    const formattedEndDate = parseDate(endDate);
+    const formattedDrawDate = parseDate(drawDate);
+
+    if (!formattedStartDate || !formattedEndDate || !formattedDrawDate) {
+      console.error('Invalid date format:', { startDate, endDate, drawDate });
+      return res.status(400).json({ 
+        message: '日期格式无效',
+        details: {
+          startDate: formattedStartDate ? 'valid' : 'invalid',
+          endDate: formattedEndDate ? 'valid' : 'invalid',
+          drawDate: formattedDrawDate ? 'valid' : 'invalid'
+        }
+      });
+    }
+
+    // 创建新的抽奖实例，使用格式化后的日期
+    const lotteryData = {
+      ...req.body,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      drawDate: formattedDrawDate
+    };
+
+    console.log('Formatted lottery data:', lotteryData);
+    const lottery = new Lottery(lotteryData);
+    console.log('Created lottery instance:', lottery);
+
+    // 保存抽奖
+    const savedLottery = await lottery.save();
+    console.log('Saved lottery:', savedLottery);
+
+    res.status(201).json(savedLottery);
   } catch (error) {
+    console.error('Error creating lottery:', error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -121,27 +166,39 @@ router.post('/:id/draw', async (req, res) => {
       return res.status(404).json({ message: '抽奖活动不存在' });
     }
     
-    if (lottery.participants.length === 0) {
-      return res.status(400).json({ message: '没有参与者，无法抽奖' });
-    }
-    
     if (!lottery.isOpen) {
       return res.status(400).json({ message: '该抽奖活动已经结束' });
     }
     
-    // 随机选择获胜者
-    const winnerIndex = Math.floor(Math.random() * lottery.participants.length);
-    const winner = lottery.participants[winnerIndex];
-    
     // 设置排除的数字
     if (req.body.excludedNumbers && Array.isArray(req.body.excludedNumbers)) {
-      // 确保所有排除的数字都是数字类型
+      // 确保所有排除的数字都是字符串类型
       const validExcludedNumbers = req.body.excludedNumbers
-        .map(num => parseInt(num, 10))
-        .filter(num => !isNaN(num));
+        .map(num => num.toString())
+        .filter(num => num.trim() !== '');
       
       lottery.excludedNumbers = validExcludedNumbers;
     }
+    
+    // 处理自定义范围
+    let startNumber = "1";
+    let endNumber = "99";
+    
+    if (req.body.startNumber !== undefined) {
+      startNumber = req.body.startNumber.toString();
+      // 保存到模型中
+      lottery.startNumber = startNumber;
+    }
+    
+    if (req.body.endNumber !== undefined) {
+      endNumber = req.body.endNumber.toString();
+      // 保存到模型中
+      lottery.endNumber = endNumber;
+    }
+    
+    // 解析为整数用于生成随机结果
+    const startNum = parseInt(startNumber, 10);
+    const endNum = parseInt(endNumber, 10);
     
     // 生成抽奖结果
     let result;
@@ -149,25 +206,28 @@ router.post('/:id/draw', async (req, res) => {
     // 如果前端传递了固定结果，则使用它
     if (req.body.fixedResult !== undefined && req.body.fixedResult !== null) {
       // 确保结果是字符串，并且不超过2位数
-      const fixedNum = parseInt(req.body.fixedResult, 10);
-      if (!isNaN(fixedNum)) {
-        result = fixedNum.toString().padStart(2, '0');
-        console.log(`使用固定结果: ${result}`);
-      } else {
-        // 如果传递的不是有效数字，生成随机结果
-        result = generateRandomResult(lottery.excludedNumbers);
-        console.log(`传递了无效结果，生成随机结果: ${result}`);
-      }
+      result = req.body.fixedResult.toString().padStart(2, '0');
+      console.log(`使用固定结果: ${result}`);
     } else {
       // 生成随机结果
-      result = generateRandomResult(lottery.excludedNumbers);
+      result = generateRandomResult(lottery.excludedNumbers, startNum, endNum);
       console.log(`生成随机结果: ${result}`);
     }
     
     // 更新抽奖信息
     lottery.isOpen = false;
     lottery.result = result;
-    lottery.winner = winner.name;
+    
+    // 只有在有参与者的情况下才设置winner
+    if (lottery.participants && lottery.participants.length > 0) {
+      // 随机选择获胜者
+      const winnerIndex = Math.floor(Math.random() * lottery.participants.length);
+      const winner = lottery.participants[winnerIndex];
+      lottery.winner = winner.name;
+    } else {
+      // 没有参与者时，将winner设为"无参与者"
+      lottery.winner = "无参与者";
+    }
     
     const updatedLottery = await lottery.save();
     res.json(updatedLottery);
@@ -178,13 +238,15 @@ router.post('/:id/draw', async (req, res) => {
 });
 
 // 辅助函数：生成随机结果
-function generateRandomResult(excludedNumbers = []) {
+function generateRandomResult(excludedNumbers = [], startNum = 0, endNum = 99) {
   let result;
   let attempts = 0;
   const maxAttempts = 100; // 防止无限循环
   
   do {
-    result = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    // 在指定范围内生成随机数
+    const randomNum = Math.floor(Math.random() * (endNum - startNum + 1)) + startNum;
+    result = randomNum.toString().padStart(2, '0');
     attempts++;
     
     // 确保不会无限循环
@@ -192,7 +254,7 @@ function generateRandomResult(excludedNumbers = []) {
       console.warn('尝试生成随机数超过最大次数，使用最后一个生成的结果');
       break;
     }
-  } while (excludedNumbers.includes(parseInt(result, 10)));
+  } while (excludedNumbers.includes(result));
   
   return result;
 }

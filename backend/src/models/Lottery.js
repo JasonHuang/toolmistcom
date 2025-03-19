@@ -64,6 +64,14 @@ const lotterySchema = new mongoose.Schema({
   excludedNumbers: {
     type: [String],
     default: []
+  },
+  startNumber: {
+    type: String,
+    default: "1"
+  },
+  endNumber: {
+    type: String,
+    default: "99"
   }
 }, {
   timestamps: true

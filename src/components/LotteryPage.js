@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { lotteryAPI } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const PageContainer = styled.div`
   width: 100%;
-  max-width: 1000px;
+  max-width: 800px;
+  margin: 0 auto;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
   transition: all 0.3s ease;
   
   &:hover {
@@ -44,51 +45,8 @@ const Subtitle = styled.p`
   color: #666;
   font-size: 1.1rem;
   margin-top: 1rem;
+  margin-bottom: 0.5rem;
   line-height: 1.5;
-`;
-
-const CardsContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 1rem;
-`;
-
-const Card = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
-  height: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: rgba(255, 77, 79, 0.2);
-  }
-`;
-
-const CardTitle = styled.h2`
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
-  color: #1a1a1a;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  
-  &:before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 20px;
-    background: linear-gradient(to bottom, #ff4d4f, #ff7875);
-    margin-right: 10px;
-    border-radius: 4px;
-  }
 `;
 
 const FormGroup = styled.div`
@@ -288,114 +246,77 @@ const ButtonGroup = styled.div`
   margin-top: 1rem;
 `;
 
-const CurrentLotteryCard = styled(Card)`
-  background: linear-gradient(135deg, #fff8f0 0%, #fff1f0 100%);
-  border-left: 4px solid #ff4d4f;
-`;
-
-const CurrentLotteryTitle = styled.h3`
-  color: #1a1a1a;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  position: relative;
-  display: inline-block;
-  
-  &:after {
-    content: '';
-    position: absolute;
-    bottom: -0.3rem;
-    left: 0;
-    width: 3rem;
-    height: 3px;
-    background: linear-gradient(to right, #ff4d4f, #ff7875);
-    border-radius: 3px;
-  }
-`;
-
-const LotteryDesc = styled.p`
-  color: #666;
+const CheckboxContainer = styled.div`
+  display: flex;
+  align-items: center;
   margin-bottom: 1.5rem;
-  line-height: 1.5;
+  cursor: pointer;
 `;
 
-const InfoItem = styled.div`
-  display: flex;
-  margin-bottom: 0.8rem;
-  align-items: center;
-  font-size: 0.95rem;
-  
-  &:hover {
-    color: #1a1a1a;
-  }
+const Checkbox = styled.input`
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  cursor: pointer;
+  accent-color: #ff4d4f;
 `;
 
-const InfoLabel = styled.span`
-  font-weight: 600;
-  color: #666;
-  width: 100px;
-  flex-shrink: 0;
-`;
-
-const InfoValue = styled.span`
-  color: #1a1a1a;
-  font-weight: 500;
-`;
-
-const JoinButton = styled(Button)`
-  width: 100%;
-  margin-top: 1rem;
-  padding: 1rem;
-  
-  &:hover {
-    transform: translateY(-3px) scale(1.02);
-  }
-`;
-
-const StatusBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3rem 0.7rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background-color: ${props => props.isOpen ? '#e6f7ff' : '#f6ffed'};
-  color: ${props => props.isOpen ? '#1890ff' : '#52c41a'};
-  border: 1px solid ${props => props.isOpen ? '#91d5ff' : '#b7eb8f'};
-  margin-left: 1rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  
-  &:before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background-color: ${props => props.isOpen ? '#1890ff' : '#52c41a'};
-    border-radius: 50%;
-    margin-right: 6px;
-  }
-`;
-
-const ParticipantCount = styled.div`
+const CheckboxLabel = styled.label`
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.8rem;
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
-  margin-top: 1rem;
-  border: 1px dashed #ffa39e;
   
-  .count {
-    font-size: 1.2rem;
-    font-weight: 600;
+  &:hover {
     color: #ff4d4f;
   }
+`;
+
+// 添加日期选择按钮样式
+const DateButtonGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const DateButton = styled.button`
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
   
-  .label {
-    font-size: 0.9rem;
-    color: #666;
+  &:hover {
+    border-color: #40a9ff;
+    color: #40a9ff;
   }
+  
+  &:active {
+    background-color: #f0f7ff;
+  }
+`;
+
+// 添加一个用于并排字段的容器
+const FormRow = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+`;
+
+const FormColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: ${props => props.flex || '1'};
 `;
 
 // 设置默认表单数据
@@ -403,41 +324,20 @@ const defaultLotteryForm = {
   title: '',
   prize: '',
   maxParticipants: 50,
-  drawDate: '',
-  description: ''
+  drawDate: new Date().toISOString().split('T')[0], // 默认为当前日期
+  description: '',
+  isImmediateDraw: false,
+  customRangeEnabled: false,
+  startNumber: '1',
+  endNumber: '99'
 };
 
 const LotteryPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(defaultLotteryForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [currentLottery, setCurrentLottery] = useState(null);
-  const [participantForm, setParticipantForm] = useState({
-    name: '',
-    phone: '',
-    email: ''
-  });
-  const [joinError, setJoinError] = useState('');
-  const [joinSuccess, setJoinSuccess] = useState('');
-  const [joinLoading, setJoinLoading] = useState(false);
-
-  // 页面加载时获取当前抽奖
-  useEffect(() => {
-    fetchCurrentLottery();
-  }, []);
-
-  // 获取当前正在进行的抽奖
-  const fetchCurrentLottery = async () => {
-    try {
-      const response = await lotteryAPI.getCurrentLottery();
-      if (response) {
-        setCurrentLottery(response);
-      }
-    } catch (error) {
-      console.error('获取当前抽奖失败', error);
-    }
-  };
 
   // 处理表单输入变化
   const handleInputChange = (e) => {
@@ -448,283 +348,369 @@ const LotteryPage = () => {
     }));
   };
 
+  // 处理日期选择按钮点击
+  const handleDateButtonClick = (days) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    const formattedDate = date.toISOString().split('T')[0];
+    
+    setFormData(prev => ({
+      ...prev,
+      drawDate: formattedDate
+    }));
+  };
+
   // 处理创建抽奖
-  const handleCreateLottery = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
-    // 基本表单验证
-    if (!formData.title || !formData.prize || !formData.drawDate) {
+    // 验证必填字段
+    if (!formData.title || !formData.prize || !formData.description) {
       setError('请填写所有必填字段');
+      setLoading(false);
       return;
     }
 
-    // 抽奖日期必须是将来的日期
-    const drawDate = new Date(formData.drawDate);
-    const today = new Date();
-    if (drawDate <= today) {
-      setError('抽奖日期必须是将来的日期');
+    // 如果不是立即开奖，还需要验证抽奖日期
+    if (!formData.isImmediateDraw && !formData.drawDate) {
+      setError('请选择抽奖日期');
+      setLoading(false);
       return;
+    }
+
+    // 验证抽奖日期
+    if (!formData.isImmediateDraw) {
+      const drawDate = new Date(formData.drawDate);
+      // 获取时区不受影响的日期部分
+      const drawYear = drawDate.getFullYear();
+      const drawMonth = drawDate.getMonth();
+      const drawDay = drawDate.getDate();
+      
+      const today = new Date();
+      const todayYear = today.getFullYear();
+      const todayMonth = today.getMonth();
+      const todayDay = today.getDate();
+      
+      // 比较年月日
+      const drawDateValue = new Date(drawYear, drawMonth, drawDay, 0, 0, 0, 0);
+      const todayValue = new Date(todayYear, todayMonth, todayDay, 0, 0, 0, 0);
+
+      if (drawDateValue < todayValue) {
+        setError('抽奖日期不能早于今天');
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 验证抽奖范围
+    if (formData.customRangeEnabled) {
+      const startNum = parseInt(formData.startNumber);
+      const endNum = parseInt(formData.endNumber);
+      
+      if (isNaN(startNum) || isNaN(endNum)) {
+        setError('请输入有效的抽奖范围');
+        setLoading(false);
+        return;
+      }
+      
+      if (startNum >= endNum) {
+        setError('起始数字必须小于结束数字');
+        setLoading(false);
+        return;
+      }
+      
+      if (startNum < 0 || endNum > 99) {
+        setError('抽奖范围必须在0-99之间');
+        setLoading(false);
+        return;
+      }
     }
 
     try {
-      setLoading(true);
-      await lotteryAPI.createLottery(formData);
-      setSuccess('抽奖创建成功！');
-      setFormData(defaultLotteryForm);
+      // 格式化日期为 YYYY-MM-DD
+      const today = new Date();
+      // 使用本地日期格式避免时区问题
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const formattedStartDate = `${year}-${month}-${day}`;
       
-      // 刷新当前抽奖
-      await fetchCurrentLottery();
-    } catch (error) {
-      setError(`创建失败: ${error.message || '未知错误'}`);
+      let formattedDrawDate, formattedEndDate;
+      
+      if (formData.isImmediateDraw) {
+        // 立即开奖模式：开始日期、结束日期和抽奖日期都设为今天
+        formattedDrawDate = formattedStartDate;
+        formattedEndDate = formattedStartDate;
+      } else {
+        // 普通模式：使用用户选择的抽奖日期
+        const drawDate = new Date(formData.drawDate);
+        // 同样使用本地日期格式
+        const drawYear = drawDate.getFullYear();
+        const drawMonth = String(drawDate.getMonth() + 1).padStart(2, '0');
+        const drawDay = String(drawDate.getDate()).padStart(2, '0');
+        formattedDrawDate = `${drawYear}-${drawMonth}-${drawDay}`;
+        formattedEndDate = formattedDrawDate;
+      }
+
+      const lotteryData = {
+        title: formData.title,
+        description: formData.description,
+        prize: formData.prize,
+        drawDate: formattedDrawDate,
+        maxParticipants: formData.maxParticipants || 100,
+        isOpen: true, // 始终设为开放状态，无论是否是立即开奖模式
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        isImmediateDraw: formData.isImmediateDraw,
+        // 添加抽奖范围
+        startNumber: formData.customRangeEnabled ? formData.startNumber : '1',
+        endNumber: formData.customRangeEnabled ? formData.endNumber : '99'
+      };
+
+      console.log('Sending lottery data:', lotteryData);
+      const response = await lotteryAPI.createLottery(lotteryData);
+      console.log('Server response:', response);
+
+      setSuccess('抽奖创建成功！');
+      
+      // 如果是立即开奖，直接跳转到详情页，不再自动执行抽奖
+      if (formData.isImmediateDraw && response._id) {
+        navigate(`/lottery/${response._id}`);
+      } else if (response._id) {
+        // 普通抽奖创建成功，重置表单
+        setFormData(defaultLotteryForm);
+      }
+    } catch (err) {
+      console.error('Error creating lottery:', err);
+      setError(err.message || '创建抽奖失败');
     } finally {
       setLoading(false);
     }
   };
 
-  // 处理参与表单变化
-  const handleParticipantChange = (e) => {
-    const { name, value } = e.target;
-    setParticipantForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // 处理参与抽奖
-  const handleJoinLottery = async (e) => {
-    e.preventDefault();
-    setJoinError('');
-    setJoinSuccess('');
-
-    // 表单验证
-    if (!participantForm.name || !participantForm.phone) {
-      setJoinError('请填写姓名和手机号');
-      return;
-    }
-
-    if (participantForm.phone && !/^1[3-9]\d{9}$/.test(participantForm.phone)) {
-      setJoinError('请输入有效的手机号码');
-      return;
-    }
-
-    if (participantForm.email && !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(participantForm.email)) {
-      setJoinError('请输入有效的邮箱地址');
-      return;
-    }
-
-    try {
-      setJoinLoading(true);
-      await lotteryAPI.joinLottery(currentLottery._id, participantForm);
-      setJoinSuccess('参与成功！');
-      setParticipantForm({
-        name: '',
-        phone: '',
-        email: ''
-      });
-      
-      // 刷新当前抽奖
-      await fetchCurrentLottery();
-    } catch (error) {
-      setJoinError(`参与失败: ${error.message || '未知错误'}`);
-    } finally {
-      setJoinLoading(false);
-    }
-  };
-
-  // 格式化日期显示
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-  };
-
   return (
     <PageContainer>
       <div>
-        <Title>幸运抽奖</Title>
-        <Subtitle>创建新的抽奖活动或参与正在进行的抽奖，赢取丰厚奖品！</Subtitle>
+        <Title>创建新的抽奖</Title>
+        <Subtitle>填写表单创建一个新的抽奖活动</Subtitle>
       </div>
       
-      <CardsContainer>
-        <Card>
-          <CardTitle>创建新的抽奖</CardTitle>
-          <form onSubmit={handleCreateLottery}>
-            <FormGroup>
-              <Label required>抽奖标题</Label>
-              <Input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="例如：新年特别抽奖"
-              />
-            </FormGroup>
-            
-            <FormGroup>
-              <Label required>奖品</Label>
-              <Input
-                type="text"
-                name="prize"
-                value={formData.prize}
-                onChange={handleInputChange}
-                placeholder="例如：iPhone 15 Pro"
-              />
-            </FormGroup>
-            
-            <FormGroup>
-              <Label required>最大参与人数</Label>
-              <Input
-                type="number"
-                name="maxParticipants"
-                value={formData.maxParticipants}
-                onChange={handleInputChange}
-                min="1"
-              />
-            </FormGroup>
-            
-            <FormGroup>
-              <Label required>抽奖日期</Label>
-              <Input
-                type="date"
-                name="drawDate"
-                value={formData.drawDate}
-                onChange={handleInputChange}
-              />
-            </FormGroup>
-            
-            <FormGroup>
-              <Label>抽奖说明</Label>
-              <TextArea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="请输入抽奖活动的详细说明..."
-              />
-            </FormGroup>
-            
-            {error && <ErrorMessage>{error}</ErrorMessage>}
-            {success && <SuccessMessage>{success}</SuccessMessage>}
-            
-            <ButtonGroup>
-              <Button 
-                type="button" 
-                onClick={() => setFormData(defaultLotteryForm)}
-              >
-                重置
-              </Button>
-              <Button 
-                type="submit" 
-                primary
-                disabled={loading}
-              >
-                {loading ? '创建中...' : '创建抽奖'}
-              </Button>
-            </ButtonGroup>
-          </form>
-        </Card>
+      <CheckboxContainer style={{ marginBottom: '2rem', marginTop: '0.5rem' }}>
+        <Checkbox 
+          type="checkbox" 
+          id="isImmediateDraw"
+          name="isImmediateDraw"
+          checked={formData.isImmediateDraw}
+          onChange={(e) => {
+            const { name, checked } = e.target;
+            // 如果选中了立即开奖，设置抽奖日期为当前日期
+            if (checked) {
+              const today = new Date();
+              // 使用本地日期格式避免时区问题
+              const year = today.getFullYear();
+              const month = String(today.getMonth() + 1).padStart(2, '0');
+              const day = String(today.getDate()).padStart(2, '0');
+              const formattedDate = `${year}-${month}-${day}`;
+              
+              setFormData(prev => ({
+                ...prev,
+                [name]: checked,
+                drawDate: formattedDate
+              }));
+            } else {
+              setFormData(prev => ({
+                ...prev,
+                [name]: checked
+              }));
+            }
+          }}
+        />
+        <CheckboxLabel htmlFor="isImmediateDraw">
+          创建后立即开奖（无需等待参与者）
+        </CheckboxLabel>
+      </CheckboxContainer>
+      
+      <form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label required>抽奖标题</Label>
+          <Input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleInputChange}
+            placeholder="例如：新年特别抽奖"
+          />
+        </FormGroup>
         
-        {currentLottery ? (
-          <CurrentLotteryCard>
-            <CurrentLotteryTitle>
-              {currentLottery.title}
-              <StatusBadge isOpen={currentLottery.isOpen}>
-                {currentLottery.isOpen ? '进行中' : '已结束'}
-              </StatusBadge>
-            </CurrentLotteryTitle>
-            
-            <LotteryDesc>{currentLottery.description}</LotteryDesc>
-            
-            <InfoItem>
-              <InfoLabel>创建日期</InfoLabel>
-              <InfoValue>{formatDate(currentLottery.createdAt)}</InfoValue>
-            </InfoItem>
-            
-            <InfoItem>
-              <InfoLabel>抽奖日期</InfoLabel>
-              <InfoValue>{formatDate(currentLottery.drawDate)}</InfoValue>
-            </InfoItem>
-            
-            <InfoItem>
-              <InfoLabel>奖品</InfoLabel>
-              <InfoValue>{currentLottery.prize}</InfoValue>
-            </InfoItem>
-            
-            <ParticipantCount>
-              <div className="label">当前参与人数</div>
-              <div className="count">
-                {currentLottery.participants ? currentLottery.participants.length : 0}/{currentLottery.maxParticipants}
+        <FormGroup>
+          <Label required>奖品</Label>
+          <Input
+            type="text"
+            name="prize"
+            value={formData.prize}
+            onChange={handleInputChange}
+            placeholder="例如：iPhone 15 Pro"
+          />
+        </FormGroup>
+        
+        <FormRow>
+          <FormColumn flex="0.4">
+            <Label required>最大参与人数</Label>
+            <Input
+              type="number"
+              name="maxParticipants"
+              value={formData.maxParticipants}
+              onChange={handleInputChange}
+              min="1"
+            />
+          </FormColumn>
+          
+          <FormColumn flex="0.6">
+            <Label required>开奖日期</Label>
+            <Input
+              type="date"
+              name="drawDate"
+              value={formData.drawDate}
+              onChange={handleInputChange}
+              disabled={formData.isImmediateDraw}
+              style={{
+                backgroundColor: formData.isImmediateDraw ? '#f5f5f5' : 'white',
+                cursor: formData.isImmediateDraw ? 'not-allowed' : 'pointer'
+              }}
+            />
+            {!formData.isImmediateDraw && (
+              <DateButtonGroup>
+                <DateButton 
+                  type="button" 
+                  onClick={() => handleDateButtonClick(0)}
+                >
+                  今天
+                </DateButton>
+                <DateButton 
+                  type="button" 
+                  onClick={() => handleDateButtonClick(7)}
+                >
+                  7天后
+                </DateButton>
+                <DateButton 
+                  type="button" 
+                  onClick={() => handleDateButtonClick(15)}
+                >
+                  15天后
+                </DateButton>
+                <DateButton 
+                  type="button" 
+                  onClick={() => handleDateButtonClick(30)}
+                >
+                  30天后
+                </DateButton>
+              </DateButtonGroup>
+            )}
+            {formData.isImmediateDraw && (
+              <div style={{ 
+                fontSize: '0.9rem', 
+                color: '#999', 
+                marginTop: '0.5rem' 
+              }}>
+                立即开奖模式下，开奖日期已自动设置为今天
               </div>
-            </ParticipantCount>
-            
-            {currentLottery.isOpen && (
-              <>
-                <form onSubmit={handleJoinLottery}>
-                  <FormGroup>
-                    <Label required>姓名</Label>
-                    <Input
-                      type="text"
-                      name="name"
-                      value={participantForm.name}
-                      onChange={handleParticipantChange}
-                      placeholder="请输入您的姓名"
-                    />
-                  </FormGroup>
-                  
-                  <FormGroup>
-                    <Label required>手机号码</Label>
-                    <Input
-                      type="tel"
-                      name="phone"
-                      value={participantForm.phone}
-                      onChange={handleParticipantChange}
-                      placeholder="请输入您的手机号码"
-                    />
-                  </FormGroup>
-                  
-                  <FormGroup>
-                    <Label>电子邮箱</Label>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={participantForm.email}
-                      onChange={handleParticipantChange}
-                      placeholder="请输入您的电子邮箱"
-                    />
-                  </FormGroup>
-                  
-                  {joinError && <ErrorMessage>{joinError}</ErrorMessage>}
-                  {joinSuccess && <SuccessMessage>{joinSuccess}</SuccessMessage>}
-                  
-                  <JoinButton 
-                    type="submit" 
-                    primary
-                    disabled={joinLoading || currentLottery.participants.length >= currentLottery.maxParticipants}
-                  >
-                    {joinLoading ? '提交中...' : '立即参与抽奖'}
-                  </JoinButton>
-                </form>
-              </>
             )}
-            
-            {!currentLottery.isOpen && (
-              <SuccessMessage>
-                本次抽奖已结束，获奖者：{currentLottery.winner || '暂未公布'}
-              </SuccessMessage>
-            )}
-          </CurrentLotteryCard>
-        ) : (
-          <Card>
-            <CardTitle>当前没有抽奖活动</CardTitle>
-            <p>目前没有正在进行的抽奖活动，请创建一个新的抽奖或查看历史记录。</p>
-          </Card>
-        )}
-      </CardsContainer>
+          </FormColumn>
+        </FormRow>
+        
+        <FormGroup>
+          <Label>抽奖说明</Label>
+          <TextArea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            placeholder="请输入抽奖活动的详细说明..."
+          />
+        </FormGroup>
+        
+        <FormGroup>
+          <CheckboxContainer>
+            <Checkbox 
+              type="checkbox" 
+              id="customRangeEnabled"
+              name="customRangeEnabled"
+              checked={formData.customRangeEnabled}
+              onChange={(e) => {
+                const { name, checked } = e.target;
+                setFormData(prev => ({
+                  ...prev,
+                  [name]: checked
+                }));
+              }}
+            />
+            <CheckboxLabel htmlFor="customRangeEnabled">
+              自定义抽奖号码范围
+            </CheckboxLabel>
+          </CheckboxContainer>
+          
+          {formData.customRangeEnabled && (
+            <FormRow style={{ marginTop: '1rem' }}>
+              <FormColumn>
+                <Label>起始数字</Label>
+                <Input
+                  type="number"
+                  name="startNumber"
+                  value={formData.startNumber}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="98"
+                />
+              </FormColumn>
+              
+              <FormColumn>
+                <Label>结束数字</Label>
+                <Input
+                  type="number"
+                  name="endNumber"
+                  value={formData.endNumber}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="99"
+                />
+              </FormColumn>
+            </FormRow>
+          )}
+          
+          {!formData.customRangeEnabled && (
+            <div style={{ 
+              fontSize: '0.9rem', 
+              color: '#999', 
+              marginTop: '0.5rem' 
+            }}>
+              默认抽奖范围：1-99
+            </div>
+          )}
+        </FormGroup>
+        
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {success && <SuccessMessage>{success}</SuccessMessage>}
+        
+        <ButtonGroup>
+          <Button 
+            type="button" 
+            onClick={() => {
+              setFormData(defaultLotteryForm);
+            }}
+          >
+            重置
+          </Button>
+          <Button 
+            type="submit" 
+            primary
+            disabled={loading}
+          >
+            {loading ? '创建中...' : '创建抽奖'}
+          </Button>
+        </ButtonGroup>
+      </form>
     </PageContainer>
   );
 };
