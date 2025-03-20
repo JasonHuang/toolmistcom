@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: lottery-frontend
+    restart: always
+    ports:
+      - "9280:80"
+  
+  backend:
+    build: ./backend
+    container_name: lottery-backend
+    restart: always
+    environment:
+      - MONGO_URI=mongodb+srv://huangpengxiao:FmlXCCLS0NAPtK8B@cluster0.srbep.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - NODE_ENV=production
+      - JWT_SECRET=okZ/NsQ+Cck7gb1mDMgZV7lXc2GOQ2EdtWG/Ej0nV5g=
+    ports:
+      - "9281:5000"
