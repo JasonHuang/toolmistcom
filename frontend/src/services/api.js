@@ -1,4 +1,4 @@
-const API_URL = 'https://api.lottery.toolmist.com';
+const API_URL = 'https://api.lottery.toolmist.com/api';
 
 // 抽奖活动相关API
 export const lotteryAPI = {
