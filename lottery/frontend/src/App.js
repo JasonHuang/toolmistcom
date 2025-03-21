@@ -6,7 +6,7 @@ import MainContainer from './components/MainContainer';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
-
+ 
   * {
     margin: 0;
     padding: 0;
