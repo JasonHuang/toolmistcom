@@ -86,10 +86,10 @@ function Footer() {
         <FooterSection>
           <h3>帮助</h3>
           <ul>
-            <li><a href="#">常见问题</a></li>
-            <li><a href="#">使用条款</a></li>
-            <li><a href="#">隐私政策</a></li>
-            <li><a href="#">联系我们</a></li>
+            <li><a href="/faq">常见问题</a></li>
+            <li><a href="/terms">使用条款</a></li>
+            <li><a href="/privacy">隐私政策</a></li>
+            <li><a href="/contact">联系我们</a></li>
           </ul>
         </FooterSection>
       </FooterContent>
