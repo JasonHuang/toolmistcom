@@ -2,14 +2,14 @@ version: '3'
 
 services:
   frontend:
-    build: ./frontend
+    build: ./lottery/frontend
     container_name: lottery-frontend
     restart: always
     ports:
       - "9280:80"
   
   backend:
-    build: ./backend
+    build: ./lottery/backend
     container_name: lottery-backend
     restart: always
     environment:
@@ -18,3 +18,22 @@ services:
       - JWT_SECRET=okZ/NsQ+Cck7gb1mDMgZV7lXc2GOQ2EdtWG/Ej0nV5g=
     ports:
       - "9281:5000"
+  
+  # 添加认证服务(先注释掉，等实现后再启用)
+  # auth-frontend:
+  #   build: ./auth/frontend
+  #   container_name: auth-frontend
+  #   restart: always
+  #   ports:
+  #     - "9282:80"
+  
+  # auth-backend:
+  #   build: ./auth/backend
+  #   container_name: auth-backend
+  #   restart: always
+  #   environment:
+  #     - MONGO_URI=mongodb+srv://your_atlas_connection_string
+  #     - NODE_ENV=production
+  #     - JWT_SECRET=your_secret_key_here
+  #   ports:
+  #     - "9283:5000"
